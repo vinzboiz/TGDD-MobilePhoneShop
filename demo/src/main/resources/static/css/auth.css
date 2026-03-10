@@ -1,0 +1,125 @@
+/* Trang đăng nhập / đăng ký kiểu TGDD */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.auth-card__left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+}
+
+.auth-card__left img {
+  max-width: 500px;
+  height: auto;
+  display: block;
+}
+
+.auth-card__right {
+  flex: 1;
+  padding: 2.25rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  max-width: 500px;
+}
+
+.auth-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.auth-subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.auth-alert {
+  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+.auth-alert--success {
+  background: #ecfdf3;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.auth-alert--error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.auth-form-label {
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.auth-input {
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+}
+
+.auth-primary-btn {
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  font-weight: 600;
+  background-color: #ff6700;
+  border-color: #ff6700;
+}
+
+.auth-primary-btn:hover {
+  background-color: #ea580c;
+  border-color: #ea580c;
+}
+
+.auth-switch-text {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  text-align: center;
+  color: #4b5563;
+}
+
+.auth-switch-text a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.auth-switch-text a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .auth-card {
+    flex-direction: column;
+  }
+
+  .auth-card__right {
+    padding: 1.5rem 1.25rem 2rem;
+  }
+}
+

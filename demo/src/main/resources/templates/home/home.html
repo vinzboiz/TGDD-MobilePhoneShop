@@ -1,0 +1,223 @@
+<!doctype html>
+<html
+  lang="vi"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trang chủ - Cửa hàng điện tử</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" th:href="@{/css/header.css(v=2)}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" th:href="@{/css/home.css}" />
+    <script src="/js/home.js?v=3" defer></script>
+  </head>
+  <body>
+    <!-- Header chung (top banner + navbar + menu) -->
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <!-- Layout: 2 banner nhỏ tách riêng (sticky) | cột giữa = banner giữa + main ngay bên dưới -->
+    <div class="tgdd-page-layout">
+      <!-- Banner nhỏ trái -->
+      <aside class="tgdd-side-banner tgdd-side-banner--left">
+        <a href="#">
+          <img th:src="@{/images/bannerrightleft.png}" alt="Banner trái" />
+        </a>
+      </aside>
+      <!-- Banner nhỏ phải -->
+      <aside class="tgdd-side-banner tgdd-side-banner--right">
+        <a href="#">
+          <img th:src="@{/images/bannerrightleft.png}" alt="Banner phải" />
+        </a>
+      </aside>
+
+      <div class="tgdd-center-col">
+        <!-- Chỉ banner giữa trong section -->
+        <section class="tgdd-hero-images">
+          <a href="#">
+            <img th:src="@{/images/bannerunderheader.jpg}" alt="Banner chính" />
+          </a>
+        </section>
+
+        <main class="tgdd-main container">
+
+      <!-- Khuyến mãi online (TGDD style: tabs + flash sale countdown + sản phẩm) -->
+      <h3 class="tgdd-promo-online__title">Khuyến mãi online</h3>
+      <section class="tgdd-promo-online">
+
+        <div class="tgdd-promo-online__tabs" id="promo-tabs" role="tablist">
+          <a href="javascript:void(0)" role="tab" aria-selected="true" class="tgdd-promo-online__tab-link tgdd-promo-online__tab-link--img active"><img th:src="@{/images/flashsale.png}" src="/images/flashsale.png" alt="FLASH SALE GIÁ SỐC" class="tgdd-promo-online__tab-img" /></a>
+          <a href="javascript:void(0)" role="tab" aria-selected="false" class="tgdd-promo-online__tab-link tgdd-promo-online__tab-link--img"><img th:src="@{/images/sale8-3.png}" src="/images/sale8-3.png" alt="8.3 TRA NHẸ TÊNH" class="tgdd-promo-online__tab-img" /></a>
+          <a href="javascript:void(0)" role="tab" aria-selected="false" class="tgdd-promo-online__tab-link tgdd-promo-online__tab-link--img"><img th:src="@{/images/onlyonline.png}" src="/images/onlyonline.png" alt="ONLINE ONLY GIẢM ĐẾN 50%" class="tgdd-promo-online__tab-img" /></a>
+          <a href="javascript:void(0)" role="tab" aria-selected="false" class="tgdd-promo-online__tab-link">Điện Thoại</a>
+          <a href="javascript:void(0)" role="tab" aria-selected="false" class="tgdd-promo-online__tab-link">Apple</a>
+          <a href="javascript:void(0)" role="tab" aria-selected="false" class="tgdd-promo-online__tab-link">Laptop</a>
+          <a href="javascript:void(0)" role="tab" aria-selected="false" class="tgdd-promo-online__tab-link">Phụ Kiện</a>
+          <a href="javascript:void(0)" role="tab" aria-selected="false" class="tgdd-promo-online__tab-link">Đồng Hồ</a>
+          <a href="javascript:void(0)" role="tab" aria-selected="false" class="tgdd-promo-online__tab-link">PC, Máy in</a>
+        </div>
+
+        <div class="tgdd-promo-online__content">
+          <div class="tgdd-flashsale-block">
+            <div class="tgdd-flashsale-timeline-wrap">
+              <div class="tgdd-flashsale-timeline">
+                <a href="javascript:void(0)" class="tgdd-flashsale-timeline__item tgdd-flashsale-timeline__active tgdd-flashsale-timeline__selected" data-countdown-end="2026-03-10T18:00:00">
+                  <span class="tgdd-flashsale-timeline__label">Chỉ còn:</span>
+                  <span class="tgdd-flashsale-timeline__countdown">
+                    <span id="fs-hour">02</span> : <span id="fs-minute">05</span> : <span id="fs-second">26</span>
+                  </span>
+                </a>
+                <a href="javascript:void(0)" class="tgdd-flashsale-timeline__item tgdd-flashsale-timeline__slot"><span>Sắp diễn ra</span><span>18:00</span></a>
+                <a href="javascript:void(0)" class="tgdd-flashsale-timeline__item tgdd-flashsale-timeline__slot"><span>Sắp diễn ra</span><span>21:30</span></a>
+                <a href="javascript:void(0)" class="tgdd-flashsale-timeline__item tgdd-flashsale-timeline__slot"><span>Ngày mai</span><span>00:00</span></a>
+                <a href="javascript:void(0)" class="tgdd-flashsale-timeline__item tgdd-flashsale-timeline__slot"><span>Ngày mai</span><span>09:00</span></a>
+              </div>
+            </div>
+
+            <div class="tgdd-flashsale-products">
+              <th:block th:each="product : ${products != null ? products : #lists.createEmptyList()}">
+                <div class="tgdd-flashsale-card">
+                  <a th:href="@{/products/{id}(id=${product.id})}" class="tgdd-flashsale-card__image-wrap">
+                    <img th:if="${product.imageData != null}" th:src="@{/products/image/{id}(id=${product.id})}" alt="Sản phẩm" />
+                    <div th:unless="${product.imageData != null}" class="tgdd-flashsale-card__placeholder">Ảnh</div>
+
+                  </a>
+                  <div class="tgdd-flashsale-card__body">
+                    <h4 class="tgdd-flashsale-card__name"><a th:href="@{/products/{id}(id=${product.id})}" th:text="${product.name != null ? product.name : 'Sản phẩm'}">Tên sản phẩm</a></h4>
+                    <div class="tgdd-flashsale-card__price">
+                      <span class="tgdd-flashsale-card__price-current" th:text="${#numbers.formatInteger((product.price != null && product.discountPercent != null && product.discountPercent > 0) ? product.price * (100 - product.discountPercent) / 100 : (product.price != null ? product.price : 0), 3, 'POINT') + '₫'}">0₫</span>
+                      <div class="tgdd-flashsale-card__price-row">
+                        <span class="tgdd-flashsale-card__price-old" th:if="${product.discountPercent != null && product.discountPercent > 0 && product.price != null}" th:text="${#numbers.formatInteger(product.price, 3, 'POINT') + '₫'}">0₫</span>
+                        <span class="tgdd-flashsale-card__discount-tag" th:if="${product.discountPercent != null && product.discountPercent > 0}" th:text="${'-' + product.discountPercent + '%'}">-0%</span>
+                      </div>
+                    </div>
+                    <div class="tgdd-flashsale-card__stock">
+                      <img th:src="@{/images/fireflashsale.png}" src="/images/fireflashsale.png" alt="" class="tgdd-flashsale-card__stock-icon" aria-hidden="true" />
+                      <span class="tgdd-flashsale-card__stock-bar">
+                        <span class="tgdd-flashsale-card__stock-fill" th:style="${'width:' + (product.stock != null && product.stock > 0 ? (product.stock >= 10 ? 100 : product.stock * 10) : 0) + '%'}"></span>
+
+                        <b class="tgdd-flashsale-card__stock-text" th:text="|Còn ${product.stock != null ? product.stock : 0} suất|">Còn 0 suất</b>
+                      </span>
+                    </div>
+                    <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" class="tgdd-flashsale-card__form">
+                      <input type="hidden" name="quantity" value="1" />
+                      <input type="hidden" name="returnTo" value="/cart" />
+                      <button type="submit" class="tgdd-flashsale-card__btn" th:disabled="${product.stock == null || product.stock <= 0}">Mua ngay</button>
+                    </form>
+                  </div>
+                </div>
+              </th:block>
+            </div>
+            <div class="tgdd-flashsale-more">
+              <button type="button" class="tgdd-flashsale-more__btn">Xem thêm sản phẩm <svg class="tgdd-flashsale-more__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </section>
+  <!-- Slide trượt ngang: 4 ảnh, mỗi lần 2 ảnh, 3s tự chuyển -->
+  <section class="tgdd-home-slide" aria-label="Slide khuyến mãi">
+    <div class="tgdd-home-slide__wrap">
+      <div class="tgdd-home-slide__track" id="home-slide-track">
+        <div class="tgdd-home-slide__item">
+          <a href="#"><img th:src="@{/images/slide/slide1.png}" src="/images/slide/slide1.png" alt="Slide 1" /></a>
+          <a href="#"><img th:src="@{/images/slide/slide2.png}" src="/images/slide/slide2.png" alt="Slide 2" /></a>
+        </div>
+        <div class="tgdd-home-slide__item">
+          <a href="#"><img th:src="@{/images/slide/slide3.png}" src="/images/slide/slide3.png" alt="Slide 3" /></a>
+          <a href="#"><img th:src="@{/images/slide/slide4.png}" src="/images/slide/slide4.png" alt="Slide 4" /></a>
+        </div>
+        <div class="tgdd-home-slide__item">
+          <a href="#"><img th:src="@{/images/slide/slide1.png}" src="/images/slide/slide1.png" alt="Slide 1" /></a>
+          <a href="#"><img th:src="@{/images/slide/slide2.png}" src="/images/slide/slide2.png" alt="Slide 2" /></a>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="tgdd-home-slide__btn tgdd-home-slide__btn--prev" id="home-slide-prev" aria-label="Slide trước"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <button type="button" class="tgdd-home-slide__btn tgdd-home-slide__btn--next" id="home-slide-next" aria-label="Slide sau"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+  </section>
+
+  <!-- Banner chính: title + 1 ảnh height 380px -->
+  <section class="tgdd-home-banner-main">
+    <h3 class="tgdd-home-banner-main__title">Có AI - Thông Minh Hơn Xài Sướng Hơn</h3>
+    <a href="#" class="tgdd-home-banner-main__img-wrap">
+      <img th:src="@{/images/banner-media1.png}" src="/images/banner-main.png" alt="Banner khuyến mãi AI" />
+    </a>
+  </section>
+
+  <!-- Gian hàng ưu đãi: 4 ảnh height 465px, cách đều -->
+  <section class="tgdd-home-banner-media">
+    <h3 class="tgdd-home-banner-media__title">Gian Hàng Ưu Đãi</h3>
+    <div class="tgdd-home-banner-media__grid">
+      <a href="#" class="tgdd-home-banner-media__item"><img th:src="@{/images/banner-media2.png}" src="/images/banner-media1.png" alt="Banner ưu đãi 1" /></a>
+      <a href="#" class="tgdd-home-banner-media__item"><img th:src="@{/images/banner-media3.png}" src="/images/banner-media2.png" alt="Banner ưu đãi 2" /></a>
+      <a href="#" class="tgdd-home-banner-media__item"><img th:src="@{/images/banner-media4.png}" src="/images/banner-media3.png" alt="Banner ưu đãi 3" /></a>
+      <a href="#" class="tgdd-home-banner-media__item"><img th:src="@{/images/banner-media5.png}" src="/images/banner-media4.png" alt="Banner ưu đãi 4" /></a>
+    </div>
+  </section>
+
+  <!-- Mạng xã hội: 4 ảnh 280x162, network1-4 -->
+  <section class="tgdd-home-network">
+    <h3 class="tgdd-home-network__title">Mạng xã hội thegioididong.com</h3>
+    <div class="tgdd-home-network__grid">
+      <a href="#" class="tgdd-home-network__item">
+        <span class="tgdd-home-network__img-wrap"><img th:src="@{/images/network1.jpg}" src="/images/network1.jpg" alt="Bài viết 1" /></span>
+        <span class="tgdd-home-network__text">WiFi yếu bất thường? Kiểm tra ngay và chặn thiết bị lạ đang âm thầm dùng mạng nhà bạn</span>
+      </a>
+      <a href="#" class="tgdd-home-network__item">
+        <span class="tgdd-home-network__img-wrap"><img th:src="@{/images/network2.jpg}" src="/images/network2.jpg" alt="Bài viết 2" /></span>
+        <span class="tgdd-home-network__text">TOP 5 đồng hồ thông minh cho nữ tốt, bán chạy nhất 2026 tại TGDĐ</span>
+      </a>
+      <a href="#" class="tgdd-home-network__item">
+        <span class="tgdd-home-network__img-wrap"><img th:src="@{/images/network3.jpg}" src="/images/network3.jpg" alt="Bài viết 3" /></span>
+        <span class="tgdd-home-network__text">Hotsale mở bán HONOR X8d: Giảm ngay 300K, thu cũ đổi mới trợ giá đến 1 triệu</span>
+      </a>
+      <a href="#" class="tgdd-home-network__item">
+        <span class="tgdd-home-network__img-wrap"><img th:src="@{/images/network4.jpg}" src="/images/network4.jpg" alt="Bài viết 4" /></span>
+        <span class="tgdd-home-network__text">Đầu số 0598 là mạng gì? Có phải lừa đảo? Ý nghĩa đầu số 0598</span>
+      </a>
+    </div>
+    <div class="tgdd-home-network__more">
+      <a href="#" class="tgdd-home-network__more-btn">Xem thêm <svg class="tgdd-home-network__more-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <!-- Mọi người cũng tìm kiếm: tag gợi ý, hover không đổi giao diện -->
+  <section class="tgdd-home-search-tags">
+    <h3 class="tgdd-home-search-tags__title">Mọi người cũng tìm kiếm</h3>
+    <div class="tgdd-home-search-tags__list">
+      <a href="#" class="tgdd-home-search-tags__tag">laptop</a>
+      <a href="#" class="tgdd-home-search-tags__tag">tai nghe</a>
+      <a href="#" class="tgdd-home-search-tags__tag">đồng hồ</a>
+      <a href="#" class="tgdd-home-search-tags__tag">pc</a>
+      <a href="#" class="tgdd-home-search-tags__tag">macbook</a>
+      <a href="#" class="tgdd-home-search-tags__tag">asus</a>
+      <a href="#" class="tgdd-home-search-tags__tag">điện thoại xiaomi</a>
+      <a href="#" class="tgdd-home-search-tags__tag">máy tính bảng lenovo</a>
+      <a href="#" class="tgdd-home-search-tags__tag">iphone 17 pro</a>
+      <a href="#" class="tgdd-home-search-tags__tag">samsung galaxy s26 ultra</a>
+      <a href="#" class="tgdd-home-search-tags__tag">MSI Katana 15</a>
+      <a href="#" class="tgdd-home-search-tags__tag">Garmin Fenix 8</a>
+      <a href="#" class="tgdd-home-search-tags__tag">Máy chạy bộ</a>
+      <a href="#" class="tgdd-home-search-tags__tag">máy lọc nước</a>
+      <a href="#" class="tgdd-home-search-tags__tag">tủ lạnh</a>
+    </div>
+  </section>
+
+    </main>
+      </div>
+    </div>
+
+    <!-- Footer chung -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/tgdd-header.js}"></script>
+  </body>
+</html>

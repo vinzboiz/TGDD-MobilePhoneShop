@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html
+  lang="vi"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:th="http://www.thymeleaf.org"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fragment</title>
+  </head>
+  <body>
+    <!-- Fragment: Footer chung - TGDD style, top 235px (trái 3 cột + phải ảnh), bottom 90px -->
+    <footer th:fragment="footer" class="tgdd-footer">
+      <div class="tgdd-footer__top">
+        <div class="container tgdd-footer__top-inner">
+          <div class="tgdd-footer__top-left">
+            <div class="tgdd-footer__col">
+              <h6 class="tgdd-footer__col-title">Tổng đài hỗ trợ</h6>
+              <p><span class="tgdd-footer__label">Gọi mua:</span> <a href="tel:1900232460">1900 232 460</a> (8:00 - 21:30)</p>
+              <p><span class="tgdd-footer__label">Khiếu nại:</span> <a href="tel:18001062">1800.1062</a> (8:00 - 21:30)</p>
+              <p><span class="tgdd-footer__label">Bảo hành:</span> <a href="tel:1900232464">1900 232 464</a> (8:00 - 21:00)</p>
+            </div>
+            <div class="tgdd-footer__col">
+              <h6 class="tgdd-footer__col-title">Về công ty</h6>
+              <a href="#">Giới thiệu công ty (MWG.vn)</a>
+              <a href="#">Tuyển dụng</a>
+              <a href="#">Gửi góp ý, khiếu nại</a>
+              <a href="#">Tìm siêu thị (2.956 shop)</a>
+            </div>
+            <div class="tgdd-footer__col">
+              <h6 class="tgdd-footer__col-title">Thông tin khác</h6>
+              <a href="#">Tích điểm Quà tặng VIP</a>
+              <a href="#">Lịch sử mua hàng</a>
+              <a href="#">Đăng ký bán hàng CTV chiết khấu cao</a>
+              <a href="#">Tìm hiểu về mua trả góp</a>
+              <a href="#">Chính sách bảo hành</a>
+              <a href="#">Xem thêm</a>
+            </div>
+          </div>
+          <div class="tgdd-footer__top-right">
+            <img th:src="@{/images/footer.png}" src="/images/footer.png" alt="Website cùng tập đoàn" class="tgdd-footer__top-right-img" />
+          </div>
+        </div>
+      </div>
+      <div class="tgdd-footer__bottom">
+        <div class="container tgdd-footer__bottom-inner">
+          <p class="tgdd-footer__copyright">© 2018. Công Ty Cổ Phần Đầu Tư Điện Máy Xanh. GPDKKD: 0303217354 do sở KHĐT TP.HCM cấp ngày 02/01/2007. GPMXH: 238/GP-BTTTT do Bộ TTTT cấp ngày 04/06/2024.</p>
+          <p>Địa chỉ: 128 Trần Quang Khải, P. Tân Định, TP. Hồ Chí Minh. Địa chỉ liên hệ và gửi chứng từ: Lô T2-1.2, Đường D1, P. Tăng Nhơn Phú, TP.Hồ Chí Minh. Điện thoại: 028 38125960. Email: hotrotmdt@thegioididong.com.</p>
+          <p>Chịu trách nhiệm nội dung: Huỳnh Văn Tốt. Đại diện ủy quyền giải quyết các vấn đề liên quan bảo vệ quyền lợi người tiêu dùng: Huỳnh Văn Tốt. Email: hotrotmdt@thegioididong.com.</p>
+          <a href="#" class="tgdd-footer__policy">Xem chính sách sử dụng</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

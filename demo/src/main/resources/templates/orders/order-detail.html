@@ -1,0 +1,371 @@
+<!doctype html>
+<html
+  lang="vi"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi tiết đơn hàng - Demo E-Commerce</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" th:href="@{/css/header.css(v=2)}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" th:href="@{/css/order-detail.css}" />
+  </head>
+  <body>
+    <!-- Header chung -->
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main class="tgdd-order-main">
+      <section class="tgdd-order-card">
+        <!-- Thanh thành công -->
+        <div class="tgdd-order-card__success">
+          <div class="tgdd-order-card__success-icon" aria-hidden="true">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <!-- Túi mua hàng -->
+              <path
+                d="M7 8V7C7 4.79 8.79 3 11 3H13C15.21 3 17 4.79 17 7V8"
+                stroke="white"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <rect
+                x="5"
+                y="8"
+                width="14"
+                height="11"
+                rx="2"
+                stroke="white"
+                stroke-width="1.8"
+              />
+              <!-- Dấu check -->
+              <path
+                d="M9 13.5L11 15.5L15 11.5"
+                stroke="white"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="tgdd-order-card__success-text">ĐẶT HÀNG THÀNH CÔNG</div>
+        </div>
+
+        <!-- Thông báo -->
+        <p class="tgdd-order-card__thanks">
+          Cảm ơn
+          <span class="tgdd-order-card__thanks-name">
+            <span
+              th:text="${order.user != null ? ((order.user.gender != null ? order.user.gender + ' ' : '') + (order.user.fullName != null ? order.user.fullName : order.user.username)) : 'Quý khách'}"
+              >Anh Nguyen Xuan Vinh</span
+            >
+          </span>
+          đã cho Thế Giới Di Động cơ hội được phục vụ.
+        </p>
+
+        <div
+          th:if="${successMessage}"
+          class="tgdd-order-card__alert tgdd-order-card__alert--success"
+          th:text="${successMessage}"
+        >
+          Đặt hàng thành công.
+        </div>
+        <div
+          th:if="${errorMessage}"
+          class="tgdd-order-card__alert tgdd-order-card__alert--error"
+          th:text="${errorMessage}"
+        >
+          Có lỗi xảy ra.
+        </div>
+
+        <!-- Thẻ xám: thông tin đơn -->
+        <div class="tgdd-order-card__summary">
+          <div class="tgdd-order-card__summary-top">
+            <div class="tgdd-order-card__summary-title">
+              ĐƠN HÀNG:
+              <span th:text="'#' + ${order.id}">#1</span>
+            </div>
+            <div class="tgdd-order-card__summary-actions">
+              <a
+                th:href="@{/account}"
+                href="/account"
+                class="tgdd-order-card__summary-link"
+                >Quản lý đơn hàng</a
+              >
+              <form
+                th:action="@{/orders/{id}/cancel(id=${order.id})}"
+                method="post"
+                th:if="${order.status != 'CANCELLED'}"
+              >
+                <button
+                  type="submit"
+                  class="tgdd-order-card__summary-cancel-btn"
+                >
+                  Hủy
+                </button>
+              </form>
+            </div>
+          </div>
+          <ul class="tgdd-order-card__summary-list">
+            <li>
+              <span class="tgdd-order-card__summary-label">
+                Người nhận hàng:
+              </span>
+              <span
+                th:text="${order.user != null
+                          ? ((order.user.gender != null ? order.user.gender + ' ' : '') +
+                             (order.user.fullName != null ? order.user.fullName : order.user.username))
+                          : 'Quý khách'}"
+              >
+                Quý khách
+              </span>
+              <span
+                th:if="${order.phoneNumber != null}"
+                th:text="' - ' + ${order.phoneNumber}"
+              >
+                - 0862053894
+              </span>
+            </li>
+            <li>
+              <span class="tgdd-order-card__summary-label">Giao đến:</span>
+              <span
+                th:text="${order.shippingAddress != null && !#strings.isEmpty(order.shippingAddress) ? order.shippingAddress : 'Chưa có địa chỉ giao hàng'}"
+                >Error</span
+              ><span> (Nhân viên sẽ gọi xác nhận trước khi giao).</span>
+
+
+            </li>
+
+            <li>
+              <span class="tgdd-order-card__summary-label">Tổng tiền:</span>
+              <span class="tgdd-order-card__summary-total">
+                <span
+                  th:text="${#numbers.formatInteger(order.totalAmount != null ? T(java.lang.Math).round(order.totalAmount) : 0, 3, 'POINT') + '₫'}"
+                  >Error</span
+                >
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Điểm tích lũy cho đơn -->
+        <div class="tgdd-order-card__earn-points">
+          <div class="tgdd-order-card__earn-icon" aria-hidden="true">
+            <img
+              th:src="@{/images/logo.png}"
+              src="/images/logo.png"
+              alt="Logo"
+            />
+          </div>
+          <div class="tgdd-order-card__earn-text">
+            Bạn tích được <strong style="color: black;">1836</strong> điểm cho đơn hàng này. Xem hướng dẫn dùng dùng điểm <a style="color:rgb(25, 0, 255); text-decoration: none;" href="#">tại đây</a>
+          </div>
+        </div>
+
+        <!-- Trạng thái thanh toán + hình thức thanh toán -->
+        <div class="tgdd-order-card__payment-block">
+          <div class="tgdd-order-card__payment-status-wrap">
+            <button
+              type="button"
+              class="tgdd-order-card__payment-status tgdd-order-card__payment-status--unpaid"
+              th:if="${order.status != 'PAID'}"
+            >
+              Đơn hàng chưa được thanh toán
+            </button>
+            <button
+              type="button"
+              class="tgdd-order-card__payment-status tgdd-order-card__payment-status--paid"
+              th:if="${order.status == 'PAID'}"
+              disabled
+            >
+              Đơn hàng đã được thanh toán
+            </button>
+          </div>
+          <p class="tgdd-order-card__payment-method">
+            Hình thức thanh toán:
+            <strong
+              th:text="${order.paymentMethod == 'BANK_TRANSFER' ? 'Chuyển khoản ngân hàng (QR)' : 'Thanh toán thẻ quốc tế'}"
+              >Thanh toán thẻ quốc tế</strong
+            >
+          </p>
+
+          <!-- Form chọn lại hình thức thanh toán + QR -->
+          <form
+            class="tgdd-order-card__payment-form"
+            th:action="@{/orders/{id}/payment-method(id=${order.id})}"
+            method="post"
+          >
+            <p class="tgdd-order-card__payment-form-title">
+              Chọn lại hình thức thanh toán khác:
+            </p>
+            <label class="tgdd-order-card__payment-option">
+              <input
+                type="radio"
+                name="paymentMethod"
+                value="BANK_TRANSFER"
+              />
+
+              <span>Chuyển khoản ngân hàng (QR)</span>
+            </label>
+            <label class="tgdd-order-card__payment-option">
+              <input
+                type="radio"
+                name="paymentMethod"
+                value="CASH_ON_DELIVERY"
+              />
+              <span>Thanh toán thẻ quốc tế</span>
+            </label>
+
+            <div
+              id="order-qr-block"
+              class="tgdd-order-card__qr"
+              hidden
+            >
+              <p>Quét mã QR để thanh toán nhanh:</p>
+              <img
+                th:src="@{/images/QR.png}"
+                src="/images/QR.png"
+                alt="Mã QR thanh toán"
+              />
+            </div>
+
+            <button type="submit" class="tgdd-order-card__payment-submit">
+              Xác nhận
+            </button>
+          </form>
+
+          <p class="tgdd-order-card__refund-note">
+            <a href="#" class="tgdd-order-card__refund-link"
+              > Xem chính sách hoàn tiền online</a
+            >
+          </p>
+        </div>
+
+        <!-- Tổng tiền (dạng giống cart) -->
+        <div class="tgdd-order-card__total-block">
+          <div class="tgdd-order-card__total-row">
+            <span>Tổng tiền</span>
+            <strong
+              th:text="${#numbers.formatInteger(order.totalAmount != null ? T(java.lang.Math).round(order.totalAmount) : 0, 3, 'POINT') + '₫'}"
+              >5.180.000₫</strong
+            >
+          </div>
+        </div>
+
+        <!-- Thời gian nhận hàng + danh sách sản phẩm -->
+        <section class="tgdd-order-card__shipping">
+          <h3 class="tgdd-order-card__shipping-title">THỜI GIAN NHẬN HÀNG</h3>
+          <div class="tgdd-order-card__shipping-box">
+            <p class="tgdd-order-card__shipping-time">
+              Nhận hàng 12h00 - 14h00, trong vòng 1–3 ngày kể từ ngày đặt hàng.
+            </p>
+            <div class="tgdd-order-card__shipping-items">
+              <div
+                class="tgdd-order-card__shipping-item"
+                th:each="item : ${order.orderDetails}"
+              >
+                <div class="tgdd-order-card__shipping-item-img">
+                  <img
+                    th:if="${item.product != null and item.product.imageData != null}"
+                    th:src="@{/products/image/{id}(id=${item.product.id})}"
+                    alt=""
+                  />
+                  <div
+                    th:unless="${item.product != null and item.product.imageData != null}"
+                    class="tgdd-order-card__shipping-item-placeholder"
+                  >
+                    Ảnh
+                  </div>
+                </div>
+                <div class="tgdd-order-card__shipping-item-body">
+                  <div
+                    class="tgdd-order-card__shipping-item-name"
+                    th:text="${item.product != null ? item.product.name : 'Sản phẩm'}"
+                  >
+                    Điện thoại ...
+                  </div>
+                  <div class="tgdd-order-card__shipping-item-meta">
+                    Số lượng:
+                    <span th:text="${item.quantity}">1</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Nút mua thêm -->
+        <div class="tgdd-order-card__actions">
+          <a
+            th:href="@{/}"
+            href="/"
+            class="tgdd-order-card__btn-more"
+            >Mua thêm sản phẩm khác</a
+          >
+        </div>
+      </section>
+    </main>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      (function () {
+        var qrBlock = document.getElementById("order-qr-block");
+        var methodRadios = document.querySelectorAll(
+          'input[name="paymentMethod"]'
+        );
+        var submitBtn = document.querySelector(
+          ".tgdd-order-card__payment-submit"
+        );
+
+        function updatePaymentState() {
+          if (!methodRadios.length) return;
+          var selected = document.querySelector(
+            'input[name="paymentMethod"]:checked'
+          );
+          var hasSelection = !!selected;
+
+          if (submitBtn) {
+            submitBtn.disabled = !hasSelection;
+            submitBtn.style.opacity = hasSelection ? "1" : "0.5";
+          }
+
+          if (qrBlock) {
+            var useQr =
+              hasSelection && selected && selected.value === "BANK_TRANSFER";
+            qrBlock.hidden = !useQr;
+          }
+        }
+
+        for (var i = 0; i < methodRadios.length; i++) {
+          methodRadios[i].addEventListener("change", updatePaymentState);
+        }
+        updatePaymentState();
+
+        var refundLink = document.querySelector(
+          ".tgdd-order-card__refund-link"
+        );
+        if (refundLink) {
+          refundLink.addEventListener("click", function (e) {
+            e.preventDefault();
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>
+

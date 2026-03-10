@@ -1,0 +1,152 @@
+/* ===== Footer TGDD style: top 235px (trái 3 cột + phải ảnh), bottom 90px ===== */
+
+.tgdd-footer {
+
+  font-size: 0.85rem;
+}
+
+/* ----- Footer top: height 235px, chia trái (nội dung) + phải (ảnh) ----- */
+.tgdd-footer__top {
+  height: auto;
+  background: #ffff;
+  border-bottom: 1px solid #e0e0e0;
+  box-sizing: border-box;
+}
+
+.tgdd-footer__top-inner {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+  box-sizing: border-box;
+}
+
+.tgdd-footer__top-left {
+  display: flex;
+  gap: 2rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 1.25rem 0;
+  padding-right: 1.5rem;
+}
+
+.tgdd-footer__col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.tgdd-footer__col-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1D2939;
+  margin: 0 0 0.5rem 0;
+}
+
+.tgdd-footer__col p,
+.tgdd-footer__col a {
+  font-size: 0.8125rem;
+  color: #4A4A4A;
+  text-decoration: none;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.tgdd-footer__col a:hover {
+  color: #288ad6;
+  text-decoration: underline;
+}
+
+.tgdd-footer__col a[href^="tel:"] {
+  color: #288ad6;
+  text-decoration: underline;
+}
+
+.tgdd-footer__label {
+  color: #4A4A4A;
+}
+
+.tgdd-footer__top-right {
+  flex: 0 0 auto;
+  width: 380px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  box-sizing: border-box;
+}
+
+.tgdd-footer__top-right-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: right center;
+  display: block;
+}
+
+/* ----- Footer bottom: height 90px ----- */
+.tgdd-footer__bottom {
+  height: 90px;
+  background: #e8e8e8;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+.tgdd-footer__bottom-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.6rem 15px 0.75rem;
+  font-size: 0.7rem;
+  line-height: 1.45;
+  color: #4A4A4A;
+}
+
+.tgdd-footer__bottom-inner p {
+  margin: 0 0 0.2rem 0;
+}
+
+.tgdd-footer__copyright {
+  font-weight: 600;
+  color: #333;
+}
+
+.tgdd-footer__policy {
+  display: inline-block;
+  margin-top: 0.25rem;
+  color: #288ad6;
+  text-decoration: underline;
+}
+
+.tgdd-footer__policy:hover {
+  color: #1a73e8;
+}
+
+@media (max-width: 992px) {
+  .tgdd-footer__top {
+    height: auto;
+    min-height: 235px;
+  }
+
+  .tgdd-footer__top-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tgdd-footer__top-right {
+    width: 100%;
+    height: 200px;
+    justify-content: center;
+  }
+
+  .tgdd-footer__top-right-img {
+    object-position: center;
+  }
+
+  .tgdd-footer__bottom {
+    height: auto;
+    min-height: 90px;
+  }
+}

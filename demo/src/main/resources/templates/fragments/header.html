@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html
+  lang="vi"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fragment</title>
+  </head>
+  <body>
+    <!-- Fragment: Header chung. showHeaderTopBar=true chỉ trang chủ (do HomeController set), các trang khác không hiện top bar -->
+    <header th:fragment="header" class="tgdd-header-wrapper">
+      <!-- Header top bar: chỉ hiện khi showHeaderTopBar = true (trang chủ) -->
+      <div class="header-top-bar" th:if="${showHeaderTopBar}">
+        <div class="banner-media">
+          <div class="media-slider" data-size="1">
+            <div class="item visible" data-background-color="#FFFFFF" data-order="1">
+              <a aria-label="slide" data-cate="0" data-place="7994" href="#" th:href="@{/}">
+                <img
+                  width="1200"
+                  height="44"
+                  loading="lazy"
+                  class="owl-lazy"
+                  th:src="@{/images/headbanner.png}"
+                  src="/images/headbanner.png"
+                  alt="Banner top bar"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Header chính: cấu trúc TGDD - logo, search, Đăng nhập, Giỏ hàng, Hồ Chí Minh (Quản trị chuyển vào trang tài khoản) -->
+      <div class="header__top">
+        <div class="header__top-inner">
+          <a href="/" class="header__logo" aria-label="Logo">
+            <img
+              th:src="@{/images/thegioididong-logo.png}"
+              src="/images/thegioididong-logo.png"
+              alt="thegioididong.com"
+            />
+          </a>
+
+          <form th:action="@{/products}" method="get" class="header__search">
+            <button type="submit" class="header__search-btn" aria-label="Tìm kiếm">
+              <i class="icon-search" aria-hidden="true"></i>
+            </button>
+            <input
+              id="skw"
+              type="text"
+              name="q"
+              class="input-search"
+              placeholder="Nhân ngày mà giảm 1 triệu"
+              autocomplete="off"
+              maxlength="100"
+            />
+          </form>
+
+          <div class="profile">
+            <a
+              href="/auth/login"
+              class="name-order"
+              sec:authorize="!isAuthenticated()"
+              ><i class="icon-user" aria-hidden="true"></i> Đăng nhập</a
+            >
+            <a
+              href="/account"
+              class="name-order active"
+              sec:authorize="isAuthenticated()"
+              ><i class="icon-user" aria-hidden="true"></i> <span th:text="${userDisplayLetter != null ? userDisplayLetter : 'T'}">T.</span></a
+            >
+          </div>
+
+          <a href="/cart" class="header__cart menu-info" id="cart-box">
+            <div class="box-cart">
+              <i class="icon-cart" aria-hidden="true"></i>
+              <span class="cart-number" th:if="${cartCount != null && cartCount > 0}" th:text="${cartCount}">0</span>
+            </div>
+            <span>Giỏ hàng</span>
+          </a>
+
+          <div class="header__address-wrap">
+            <a href="#" class="header__address" id="header-location" aria-label="Khu vực">
+              <i class="icon-location" aria-hidden="true"></i>
+              <span>Hồ Chí Minh</span>
+              <i class="icon-chevron" aria-hidden="true"></i>
+            </a>
+            <div class="remind_location fade-out" id="remind-location" aria-hidden="true">
+              <div class="remind_question">
+                Bạn đang ở tại <b>Hồ Chí Minh</b>?
+                <p class="remind_change">Sửa</p>
+              </div>
+              <p class="remind_content">Giá và khuyến mãi đang lấy theo khu vực này.</p>
+              <div class="remind_btn-close" role="button" tabindex="0" aria-label="Đóng"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thanh menu danh mục (TGDD: parent_categories + đặc tính, mega-menu theo nhóm đặc tính) -->
+      <nav class="tgdd-main-nav" th:with="parents=${parentCategories != null ? parentCategories : #lists.createEmptyList()}">
+          <div class="container container--nav">
+            <ul class="tgdd-main-nav__list">
+              <li
+                class="tgdd-main-nav__item tgdd-main-nav__item--has-dropdown"
+                th:each="parent, parentStat : ${parents}"
+                th:classappend="${(parent.attributes != null and !parent.attributes.isEmpty()) or (parent.categories != null and !parent.categories.isEmpty())} ? 'has-children' : ''"
+              >
+                <a
+                  th:href="@{/products(parentCategoryId=${parent.id})}"
+                  class="tgdd-main-nav__link"
+                  th:attr="data-cat-id=${parent.id}"
+                >
+                  <!-- Danh mục cha: icon trong menu từ icon-1 đến icon-10 (theo thứ tự 1..10) -->
+                  <img
+                    class="tgdd-main-nav__icon-img"
+                    th:src="@{/images/menu/icon{num}.png(num=${parentStat.count <= 10 ? parentStat.count : 10})}"
+                    th:alt="${parent.name}"
+                    th:title="${parent.name}"
+                    alt="Category icon"
+                    title="Category icon"
+                    width="20"
+                    height="20"
+                    loading="lazy"
+                  />
+                  <span class="tgdd-main-nav__label" th:text="${parent.name}">Danh mục</span>
+                  <span
+                    class="tgdd-main-nav__arrow"
+                    aria-hidden="true"
+                    th:if="${(parent.attributes != null and !parent.attributes.isEmpty()) or (parent.categories != null and !parent.categories.isEmpty())}"
+                  ></span>
+                </a>
+                <!-- Mega-menu: theo đặc tính (Phụ kiện di động, Phụ kiện laptop, ...) -->
+                <div
+                  class="tgdd-mega"
+                  th:if="${(parent.attributes != null and !parent.attributes.isEmpty()) or (parent.categories != null and !parent.categories.isEmpty())}"
+                  th:attr="data-parent-id=${parent.id}"
+                >
+                  <div class="tgdd-mega__inner">
+                    <div class="tgdd-mega__inner-content">
+                    <!-- Có đặc tính: mỗi nhóm là một section, dropdown dùng column-count 2 cột -->
+                    <div th:each="attr : ${parent.attributes}" class="tgdd-mega__section" th:if="${attr.categories != null and !attr.categories.isEmpty()}">
+                      <h4 class="tgdd-mega__section-title" th:text="${attr.name}">Đặc tính</h4>
+                      <div class="tgdd-mega__grid">
+                        <a
+                          th:each="child, childStat : ${attr.categories}"
+                          th:href="@{/products(categoryId=${child.id})}"
+                          class="tgdd-mega__item"
+                        >
+                          <span class="tgdd-mega__img-wrap">
+                            <img th:if="${child.imageData != null}" th:src="@{/categories/image/{id}(id=${child.id})}" th:alt="${child.name}" th:title="${child.name}" alt="Danh mục con" title="Danh mục con" class="tgdd-mega__img" />
+                            <img th:if="${child.imageData == null}" th:src="@{/images/menu/icon-{num}.png(num=${(childStat.index % 10) + 1})}" th:alt="${child.name}" th:title="${child.name}" alt="Danh mục con" title="Danh mục con" class="tgdd-mega__img" />
+                          </span>
+                          <span class="tgdd-mega__name" th:text="${child.name}">Tên con</span>
+                        </a>
+                      </div>
+                    </div>
+                    <!-- Danh mục con không thuộc đặc tính nào: có ảnh thì dùng ảnh danh mục, không thì dùng icon-1..icon-10 theo thứ tự -->
+                    <div th:if="${parent.categories != null}" class="tgdd-mega__section" th:with="catsNoAttr=${parent.categories.?[attribute == null]}">
+                      <div th:if="${!catsNoAttr.isEmpty()}">
+                        <h4 class="tgdd-mega__section-title">Khác</h4>
+                        <div class="tgdd-mega__grid">
+                          <a th:each="child, childStat : ${catsNoAttr}" th:href="@{/products(categoryId=${child.id})}" class="tgdd-mega__item">
+                            <span class="tgdd-mega__img-wrap">
+                              <img th:if="${child.imageData != null}" th:src="@{/categories/image/{id}(id=${child.id})}" th:alt="${child.name}" th:title="${child.name}" alt="Danh mục con" title="Danh mục con" class="tgdd-mega__img" />
+                              <img th:if="${child.imageData == null}" th:src="@{/images/menu/icon-{num}.png(num=${(childStat.index % 10) + 1})}" th:alt="${child.name}" th:title="${child.name}" alt="Danh mục con" title="Danh mục con" class="tgdd-mega__img" />
+                            </span>
+                            <span class="tgdd-mega__name" th:text="${child.name}">Tên con</span>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </nav>
+    </header>
+  </body>
+</html>

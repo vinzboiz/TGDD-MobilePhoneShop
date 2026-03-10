@@ -1,0 +1,380 @@
+<!doctype html>
+<html
+  lang="vi"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thông tin tài khoản - Demo E-Commerce</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" th:href="@{/css/header.css(v=2)}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" th:href="@{/css/account.css}" />
+  </head>
+  <body>
+    <!-- Header chung -->
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main class="tgdd-account-main container my-4">
+      <h1 class="mb-3">Thông tin tài khoản</h1>
+
+      <div
+        th:if="${successMessage}"
+        class="alert alert-success alert-dismissible fade show"
+        role="alert"
+      >
+        <span th:text="${successMessage}">Cập nhật thành công.</span>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Đóng"
+        ></button>
+      </div>
+      <div
+        th:if="${errorMessage}"
+        class="alert alert-danger alert-dismissible fade show"
+        role="alert"
+      >
+        <span th:text="${errorMessage}">Có lỗi xảy ra.</span>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Đóng"
+        ></button>
+      </div>
+
+      <div class="row">
+        <!-- Sidebar: thông tin + tab -->
+        <div class="col-md-3 mb-3">
+          <div class="mb-2 fw-semibold">
+            <span th:text="${user.gender != null ? user.gender : 'Anh'}">Anh</span>
+            <span th:text="${user.fullName != null ? user.fullName : user.username}"
+              >Nguyen Xuan Vinh</span
+            >
+          </div>
+          <div class="mb-3 text-muted" th:text="${user.phoneNumber}">
+            0862053894
+          </div>
+
+          <ul class="nav nav-pills flex-column" id="accountTab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link active"
+                id="orders-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#orders-pane"
+                type="button"
+                role="tab"
+                aria-controls="orders-pane"
+                aria-selected="true"
+              >
+                Đơn hàng đã mua
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                id="address-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#address-pane"
+                type="button"
+                role="tab"
+                aria-controls="address-pane"
+                aria-selected="false"
+              >
+                Sổ địa chỉ
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                id="voucher-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#voucher-pane"
+                type="button"
+                role="tab"
+                aria-controls="voucher-pane"
+                aria-selected="false"
+              >
+                Mã giảm giá của bạn
+              </button>
+            </li>
+          </ul>
+
+          <a
+            th:href="@{/auth/logout}"
+            href="/auth/logout"
+            class="btn btn-outline-danger btn-sm mt-3"
+            >Đăng xuất</a
+          >
+        </div>
+
+        <!-- Nội dung từng tab -->
+        <div class="col-md-9">
+          <!-- Section quản lý dành cho ADMIN -->
+          <div
+            sec:authorize="hasRole('ADMIN')"
+            class="alert alert-warning d-flex justify-content-between align-items-center mb-3"
+            role="alert"
+          >
+            <div>
+              <strong>Khu vực quản lý</strong>
+              <div class="small text-muted">
+                Quản lý danh mục, sản phẩm và đơn hàng của cửa hàng.
+              </div>
+            </div>
+            <a
+              th:href="@{/admin}"
+              href="/admin"
+              class="btn btn-sm btn-outline-dark"
+            >
+              Vào trang quản lý
+            </a>
+          </div>
+
+          <div class="tab-content" id="accountTabContent">
+            <!-- Tab: Đơn hàng đã mua -->
+            <div
+              class="tab-pane fade show active"
+              id="orders-pane"
+              role="tabpanel"
+              aria-labelledby="orders-tab"
+            >
+              <h2 class="h5 mb-2">Đơn hàng đã mua</h2>
+              <div class="mb-3" th:if="${!#lists.isEmpty(orders)}">
+                <div class="btn-group btn-group-sm" id="orderFilterGroup" role="group" aria-label="Lọc đơn hàng">
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    data-order-filter="ALL"
+                  >
+                    Tất cả
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-order-filter="PENDING"
+                  >
+                    Chờ xử lý
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-order-filter="SHIPPED"
+                  >
+                    Đang giao hàng
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-order-filter="CANCELLED"
+                  >
+                    Đã hủy
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-order-filter="PAID"
+                  >
+                    Thành công
+                  </button>
+                </div>
+              </div>
+              <div th:if="${#lists.isEmpty(orders)}" class="alert alert-info">
+                Bạn chưa có đơn hàng nào.
+              </div>
+              <div th:if="${!#lists.isEmpty(orders)}" class="table-responsive">
+                <table class="table table-sm align-middle">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Mã đơn</th>
+                      <th>Thời gian đặt</th>
+                      <th>Trạng thái</th>
+                      <th class="text-end">Tổng tiền</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="ordersTableBody">
+                    <tr th:each="o : ${orders}" th:attr="data-order-status=${o.status}">
+                      <td th:text="'#' + ${o.id}">#1</td>
+                      <td
+                        th:text="${#temporals.format(o.orderDate, 'HH:mm dd/MM/yyyy')}"
+                      >
+                        10:30 09/03/2026
+                      </td>
+                      <td th:text="${o.status}">PENDING</td>
+                      <td class="text-end">
+                        <span
+                          th:text="${#numbers.formatInteger(o.totalAmount != null ? T(java.lang.Math).round(o.totalAmount) : 0, 3, 'POINT') + '₫'}"
+                          >0₫</span
+                        >
+                      </td>
+                      <td class="text-end">
+                        <a
+                          th:href="@{/orders/{id}(id=${o.id})}"
+                          class="btn btn-outline-primary btn-sm"
+                          >Xem chi tiết</a
+                        >
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Tab: Sổ địa chỉ (cập nhật profile) -->
+            <div
+              class="tab-pane fade"
+              id="address-pane"
+              role="tabpanel"
+              aria-labelledby="address-tab"
+            >
+              <h2 class="h5 mb-3">Sổ địa chỉ</h2>
+              <form
+                th:action="@{/account/update}"
+                method="post"
+                class="row g-3"
+              >
+                <div class="col-12">
+                  <label class="form-label">Giới tính xưng hô</label>
+                  <div>
+                    <label class="me-3"
+                      ><input
+                        type="radio"
+                        name="gender"
+                        value="Anh"
+                        th:checked="${user.gender == 'Anh' or user.gender == null}"
+                      />
+                      Anh</label
+                    >
+                    <label
+                      ><input
+                        type="radio"
+                        name="gender"
+                        value="Chị"
+                        th:checked="${user.gender == 'Chị'}"
+                      />
+                      Chị</label
+                    >
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label for="fullName" class="form-label">Họ &amp; Tên</label>
+                  <input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    class="form-control"
+                    th:value="${user.fullName}"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label for="phoneNumber" class="form-label"
+                    >Số điện thoại</label
+                  >
+                  <input
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    type="text"
+                    class="form-control"
+                    th:value="${user.phoneNumber}"
+                  />
+                </div>
+                <div class="col-12">
+                  <label for="defaultAddress" class="form-label"
+                    >Địa chỉ nhận hàng mặc định</label
+                  >
+                  <textarea
+                    id="defaultAddress"
+                    name="defaultAddress"
+                    class="form-control"
+                    rows="3"
+                    th:text="${user.defaultAddress}"
+                  ></textarea>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary">
+                    Lưu thông tin
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Tab: Mã giảm giá -->
+            <div
+              class="tab-pane fade"
+              id="voucher-pane"
+              role="tabpanel"
+              aria-labelledby="voucher-tab"
+            >
+              <h2 class="h5 mb-3">Mã giảm giá của bạn</h2>
+              <p class="text-muted">
+                Hiện tại chưa có mã giảm giá nào được lưu. Tính năng này sẽ
+                được cập nhật sau.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Lọc đơn hàng phía client, không reload trang
+      (function () {
+        var filterGroup = document.getElementById('orderFilterGroup');
+        var tbody = document.getElementById('ordersTableBody');
+        if (!filterGroup || !tbody) return;
+
+        var buttons = filterGroup.querySelectorAll('[data-order-filter]');
+        var rows = tbody.querySelectorAll('tr[data-order-status]');
+        if (!buttons.length || !rows.length) return;
+
+        function applyFilter(filter) {
+          var effective =
+            filter === 'PENDING' ||
+            filter === 'SHIPPED' ||
+            filter === 'CANCELLED' ||
+            filter === 'PAID'
+              ? filter
+              : 'ALL';
+
+          for (var i = 0; i < buttons.length; i++) {
+            var btn = buttons[i];
+            var f = (btn.getAttribute('data-order-filter') || 'ALL').toUpperCase();
+            var isActive = f === effective;
+            btn.classList.toggle('btn-primary', isActive);
+            btn.classList.toggle('btn-outline-secondary', !isActive);
+          }
+
+          for (var j = 0; j < rows.length; j++) {
+            var row = rows[j];
+            var status = (row.getAttribute('data-order-status') || '').toUpperCase();
+            var show = effective === 'ALL' || status === effective;
+            row.style.display = show ? '' : 'none';
+          }
+        }
+
+        for (var k = 0; k < buttons.length; k++) {
+          (function (btn) {
+            btn.addEventListener('click', function () {
+              var filter = (btn.getAttribute('data-order-filter') || 'ALL').toUpperCase();
+              applyFilter(filter);
+            });
+          })(buttons[k]);
+        }
+      })();
+    </script>
+  </body>
+</html>
+

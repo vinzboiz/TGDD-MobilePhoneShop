@@ -1,0 +1,607 @@
+<!doctype html>
+<html
+  lang="vi"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Giỏ hàng - Demo E-Commerce</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" th:href="@{/css/cart.css}" />
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+  </head>
+  <body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main class="tgdd-cart-main">
+
+
+
+      <!-- Empty Cart: ảnh no-cart, text, nút Về trang chủ, liên hệ -->
+      <div th:if="${cart.items.isEmpty()}" class="tgdd-cart-empty">
+        <img th:src="@{/images/no-cart.png}" src="/images/no-cart.png" alt="Giỏ hàng trống" class="tgdd-cart-empty__img" />
+        <h2 class="tgdd-cart-empty__title">Giỏ hàng trống</h2>
+        <p class="tgdd-cart-empty__text">Không có sản phẩm nào trong giỏ hàng</p>
+        <a th:href="@{/}" href="/" class="tgdd-cart-empty__btn">Về trang chủ</a>
+        <p class="tgdd-cart-empty__contact">Khi cần trợ giúp vui lòng gọi 1900 232 460 hoặc 028.3622.1060 (8h00 - 21h30)</p>
+      </div>
+
+      <!-- Cart when has products: nút back ngoài, bên trong width 600px -->
+      <div th:if="${!cart.items.isEmpty()}" class="tgdd-cart-wrap">
+        <div class="tgdd-cart__back">
+          <a th:href="@{/}" href="/" class="tgdd-cart__back-link" aria-label="Quay lại">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          </a>
+        </div>
+         <!-- Hình thức giao hàng: trong thẻ, 2 radio -->
+        <div class="tgdd-cart__delivery-card">
+          <div class="tgdd-cart__delivery-options">
+            <label class="tgdd-cart__radio-wrap">
+              <input type="radio" name="deliveryType" value="home" class="tgdd-cart__radio" checked />
+              <span>Giao tận nơi</span>
+            </label>
+            <label class="tgdd-cart__radio-wrap">
+              <input type="radio" name="deliveryType" value="store" class="tgdd-cart__radio" />
+              <span>Nhận tại siêu thị</span>
+            </label>
+          </div>
+        </div>
+        <div class="tgdd-cart-with-items">
+
+
+          <!-- Khung người nhận: Người nhận và tên/SĐT cùng hàng (flex); dòng dưới là địa chỉ hoặc yêu cầu chọn địa chỉ -->
+          <button type="button" class="tgdd-cart__recipient-block" id="cart-recipient-block" aria-label="Thông tin nhận hàng">
+            <span class="tgdd-cart__recipient-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+            <div class="tgdd-cart__recipient-content">
+              <span class="tgdd-cart__recipient-value" id="cart-recipient-display" th:classappend="${(userRecipientName != null || userDefaultAddress != null) ? 'tgdd-cart__recipient-value--filled' : ''}">
+                <th:block th:if="${userRecipientName != null || userDefaultAddress != null}">
+                  <div class="tgdd-cart__recipient-row1">
+                    <span class="tgdd-cart__recipient-label">Người nhận:</span>
+                    <span class="tgdd-cart__recipient-line1" th:text="${(userRecipientGender != null ? userRecipientGender + ' ' : '') + (userRecipientName != null ? userRecipientName : '') + (userRecipientPhone != null ? ' - ' + userRecipientPhone : '')}">Anh Nguyen Xuan Vinh - 0862053894</span>
+                  </div>
+                  <span class="tgdd-cart__recipient-line2" th:if="${userDefaultAddress != null}" th:text="${userDefaultAddress}">3/30 bình phước a, Phường An Đông, TP.HCM</span>
+                  <span class="tgdd-cart__recipient-line2 tgdd-cart__recipient-line2--hint" th:if="${userDefaultAddress == null}">Yêu cầu chọn địa chỉ</span>
+                </th:block>
+                <th:block th:unless="${userRecipientName != null || userDefaultAddress != null}">Vui lòng cung cấp thông tin nhận hàng</th:block>
+              </span>
+            </div>
+            <span class="tgdd-cart__recipient-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></span>
+          </button>
+
+          <!-- Danh sách sản phẩm: tên, giá (giảm thì có giá gạch), Xoá, số lượng. Không màu sắc, không dòng “chưa hỗ trợ giao” -->
+          <div class="tgdd-cart__list" id="cart-list" th:attr="data-cart-ajax=${#authorization.expression('isAuthenticated()')}">
+            <div th:each="item : ${cart.items}" class="tgdd-cart__item" th:attr="data-item-id=${item.id}">
+              <a th:href="@{/products/{id}(id=${item.product.id})}" class="tgdd-cart__item-img-wrap">
+                <img th:if="${item.product.imageData != null}" th:src="@{/products/image/{id}(id=${item.product.id})}" alt="" />
+                <span th:unless="${item.product.imageData != null}" class="tgdd-cart__item-placeholder">Ảnh</span>
+              </a>
+              <div class="tgdd-cart__item-body">
+                <div class="tgdd-cart__item-top">
+                  <a th:href="@{/products/{id}(id=${item.product.id})}" class="tgdd-cart__item-name" th:text="${item.product.name}">Tên SP</a>
+                  <div class="tgdd-cart__item-price-row">
+                    <span class="tgdd-cart__item-price" th:text="${#numbers.formatInteger(item.unitPrice != null ? item.unitPrice.setScale(0, T(java.math.RoundingMode).HALF_UP).intValue() : 0, 3, 'POINT') + '₫'}">0₫</span>
+                    <span th:if="${item.product.price != null && item.product.discountPercent != null && item.product.discountPercent > 0}" class="tgdd-cart__item-price-old" th:text="${#numbers.formatInteger(item.product.price != null ? T(java.lang.Math).round(item.product.price) : 0, 3, 'POINT') + '₫'}">0₫</span>
+                  </div>
+                </div>
+                <p class="tgdd-cart__item-mid">Nhập mã VNPAY0126 giảm tối đa 100,000đ (áp dụng tùy giá trị đơn hàng) khi thanh toán qua VNPAY-QR (<a href="#" class="tgdd-cart__item-promo-link">Xem chi tiết tại đây</a>)</p>
+                <div class="tgdd-cart__item-actions">
+                  <form th:action="@{/cart/remove/{id}(id=${item.id != null ? item.id : item.product.id})}" method="post" class="tgdd-cart__item-remove-form" sec:authorize="isAuthenticated()">
+                    <button type="submit" class="tgdd-cart__item-remove-btn">Xoá</button>
+                  </form>
+                  <form th:action="@{/cart/remove/{id}(id=${item.product.id})}" method="post" class="tgdd-cart__item-remove-form" sec:authorize="!isAuthenticated()">
+                    <button type="submit" class="tgdd-cart__item-remove-btn" onclick="return confirm('Xóa sản phẩm khỏi giỏ?');">Xoá</button>
+                  </form>
+                  <div class="tgdd-cart__item-qty">
+                    <form th:action="@{/cart/update/{id}(id=${item.id != null ? item.id : item.product.id})}" method="post" class="tgdd-cart__qty-form tgdd-cart__qty-form--minus">
+                      <input type="hidden" name="quantity" th:value="${item.quantity > 1 ? item.quantity - 1 : 1}" />
+                      <button type="submit" class="tgdd-cart__qty-btn" aria-label="Giảm số lượng">–</button>
+                    </form>
+                    <span class="tgdd-cart__qty-num" th:text="${item.quantity}">1</span>
+                    <form th:action="@{/cart/update/{id}(id=${item.id != null ? item.id : item.product.id})}" method="post" class="tgdd-cart__qty-form tgdd-cart__qty-form--plus">
+                      <input type="hidden" name="quantity" th:value="${item.quantity + 1}" />
+                      <button type="submit" class="tgdd-cart__qty-btn" aria-label="Tăng số lượng">+</button>
+                    </form>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        <!-- Tạm tính -->
+        <div class="tgdd-cart__subtotal">
+          <span>Tạm tính (<span id="cart-subtotal-count" th:text="${cart.items.size()}">0</span> sản phẩm):</span>
+          <strong id="cart-subtotal-total" th:text="${#numbers.formatInteger(cart.totalAmount != null ? cart.totalAmount.setScale(0, T(java.math.RoundingMode).HALF_UP).intValue() : 0, 3, 'POINT') + '₫'}">0₫</strong>
+        </div>
+        <!-- Sau khi xác nhận: thông tin nhận hàng (ẩn ban đầu) -->
+        <div class="tgdd-cart__shipping-info" id="cart-shipping-info" hidden>
+          <div class="tgdd-cart__divider"></div>
+          <h3 class="tgdd-cart__shipping-title">Thông tin nhận hàng:</h3>
+
+          <!-- Sản phẩm: ảnh, tên, SL dưới tên -->
+          <div class="tgdd-cart__shipping-list" id="cart-shipping-list">
+            <div th:each="item : ${cart.items}" class="tgdd-cart__shipping-card" th:attr="data-item-id=${item.id}">
+              <a th:href="@{/products/{id}(id=${item.product.id})}" class="tgdd-cart__shipping-card-img">
+                <img th:if="${item.product.imageData != null}" th:src="@{/products/image/{id}(id=${item.product.id})}" alt="" />
+                <span th:unless="${item.product.imageData != null}" class="tgdd-cart__item-placeholder">Ảnh</span>
+              </a>
+              <div class="tgdd-cart__shipping-card-body">
+                <a th:href="@{/products/{id}(id=${item.product.id})}" class="tgdd-cart__shipping-card-name" th:text="${item.product.name}">Tên SP</a>
+                <p class="tgdd-cart__shipping-card-meta">SL: <span class="tgdd-cart__shipping-card-qty" th:text="${item.quantity}">1</span></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Khung #F6F7F9: thời gian, giao siêu nhanh, phí, giao bởi nhân viên + logo -->
+          <div class="tgdd-cart__delivery-box">
+            <div class="tgdd-cart__delivery-box-row tgdd-cart__delivery-box-row--top">
+              <span class="tgdd-cart__delivery-time">Giao 12h00 - 14h00, hôm nay</span>
+              <button type="button" class="tgdd-cart__delivery-time-btn">Đổi thời gian</button>
+            </div>
+            <label class="tgdd-cart__shipping-checkbox">
+              <input type="checkbox" id="cart-fast-shipping" />
+              <span>Giao siêu nhanh</span>
+            </label>
+            <div class="tgdd-cart__delivery-box-row tgdd-cart__delivery-box-row--mid">
+              <span>Phí giao hàng</span>
+              <span id="cart-shipping-fee-text" class="tgdd-cart__fee-value">Miễn phí</span>
+            </div>
+            <div class="tgdd-cart__delivery-box-row tgdd-cart__delivery-box-row--bottom">
+              <span>Giao bởi nhân viên</span>
+              <img th:src="@{/images/logongang.jpg}" src="/images/logongang.jpg" alt="thegioididong" class="tgdd-cart__logo-img" onerror="this.style.display='none'" />
+              <span>. được đồng kiểm <span class="tgdd-cart__info-icon" aria-label="Thông tin">?</span></span>
+            </div>
+          </div>
+          <!-- Dải ngăn cách -->
+          <div class="tgdd-cart__divider"></div>
+          <!-- Yêu cầu đặc biệt -->
+          <div class="tgdd-cart__special-requests">
+            <h4 class="tgdd-cart__section-title">Yêu cầu đặc biệt</h4>
+            <label class="tgdd-cart__shipping-checkbox"><input type="checkbox" name="cartSpecialRequest" value="Chuyển danh bạ, dữ liệu qua máy mới" /> Chuyển danh bạ, dữ liệu qua máy mới</label>
+            <label class="tgdd-cart__shipping-checkbox"><input type="checkbox" name="cartSpecialRequest" value="Xuất hóa đơn công ty" /> Xuất hóa đơn công ty</label>
+            <label class="tgdd-cart__shipping-checkbox"><input type="checkbox" name="cartSpecialRequest" id="cart-special-other" value="Yêu cầu khác" /> Yêu cầu khác</label>
+            <div class="tgdd-cart__special-other-wrap" id="cart-special-other-wrap" hidden>
+              <input type="text" id="cart-special-other-input" class="tgdd-cart__special-other-input" placeholder="Nhập yêu cầu khác..." />
+            </div>
+          </div>
+          <!-- Dải ngăn cách -->
+          <div class="tgdd-cart__divider"></div>
+          <!-- Chọn hoặc nhập mã giảm -->
+          <div class="tgdd-cart__voucher-row">
+            <span class="tgdd-cart__voucher-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v2H2V6c0-1.1.9-2 2-2z"/><path d="M2 10h20v8c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2v-8z"/><circle cx="8" cy="15" r="1.5"/><path d="M14 11l4 4"/><path d="M18 11l-4 4"/></svg>
+            </span>
+            <a href="#" class="tgdd-cart__voucher-link">Chọn hoặc nhập mã giảm</a>
+            <span class="tgdd-cart__voucher-arrow">›</span>
+          </div>
+          <!-- Dùng điểm Quà Tặng VIP: icon + toggle tròn -->
+          <div class="tgdd-cart__vip-row">
+            <img th:src="@{/images/logo.png}" src="/images/logo.png" alt="" class="tgdd-cart__vip-icon" onerror="this.style.display='none'" />
+            <span>Dùng điểm Quà Tặng VIP</span>
+            <button type="button" class="tgdd-cart__vip-toggle" id="cart-vip-toggle" aria-pressed="false" role="switch" title="Bật/tắt dùng điểm VIP"><span class="tgdd-cart__vip-toggle__knob"></span></button>
+          </div>
+          <!-- Tổng tiền -->
+          <div class="tgdd-cart__order-total-row">
+            <span>Tổng tiền</span>
+            <strong id="cart-order-total" th:text="${#numbers.formatInteger(cart.totalAmount != null ? cart.totalAmount.setScale(0, T(java.math.RoundingMode).HALF_UP).intValue() : 0, 3, 'POINT') + '₫'}">0₫</strong>
+          </div>
+          <!-- Điểm tích lũy Quà Tặng VIP -->
+          <div class="tgdd-cart__vip-points-row">
+            <span>Điểm tích lũy Quà Tặng VIP</span>
+            <span id="cart-vip-points" class="tgdd-cart__vip-points-value">1.836 điểm</span>
+          </div>
+          <!-- Dải ngăn cách -->
+          <div class="tgdd-cart__divider"></div>
+          <!-- Hình thức thanh toán -->
+          <div class="tgdd-cart__payment-section">
+            <h4 class="tgdd-cart__section-title">Hình thức thanh toán</h4>
+            <label class="tgdd-cart__payment-option">
+              <input type="radio" name="cartPaymentMethod" value="BANK_TRANSFER" />
+              <span>Chuyển khoản ngân hàng</span>
+            </label>
+            <label class="tgdd-cart__payment-option">
+              <input type="radio" name="cartPaymentMethod" value="CASH_ON_DELIVERY" checked />
+              <span>Thanh toán tiền mặt khi nhận hàng</span>
+            </label>
+          </div>
+          <div class="tgdd-cart__qr-block" id="cart-qr-block" hidden>
+            <p class="tgdd-cart__qr-title">Quét mã QR để thanh toán nhanh:</p>
+            <img th:src="@{/images/QR.png}" src="/images/QR.png" alt="Mã QR thanh toán" />
+          </div>
+
+          <!-- Tôi đồng ý + Đặt hàng -->
+          <label class="tgdd-cart__agree-checkbox">
+            <input type="checkbox" id="cart-agree-policy" />
+            <span>Tôi đồng ý với <a href="#" class="tgdd-cart__policy-link">Chính sách xử lý dữ liệu cá nhân</a> của Thế Giới Di Động</span>
+          </label>
+          <input type="hidden" id="cart-hidden-address" value="" />
+          <input type="hidden" id="cart-hidden-phone" value="" />
+          <button type="button" class="tgdd-cart__place-order-btn" id="cart-place-order-btn" disabled>Đặt hàng</button>
+        </div>
+
+      </div>
+      </div>
+    </main>
+
+    <!-- Popup Thông tin giao hàng: làm mờ nền, hiện form -->
+    <div class="tgdd-cart-overlay" id="cart-delivery-overlay" aria-hidden="true" hidden>
+      <div class="tgdd-cart-modal" id="cart-delivery-modal" role="dialog" aria-labelledby="cart-modal-title" aria-modal="true">
+        <div class="tgdd-cart-modal__head">
+          <h2 id="cart-modal-title">Thông tin giao hàng</h2>
+          <button type="button" class="tgdd-cart-modal__close" id="cart-modal-close" aria-label="Đóng">×</button>
+        </div>
+        <div class="tgdd-cart-modal__body">
+          <div class="tgdd-cart-modal__section">
+            <h4>Thông tin người đặt</h4>
+            <div class="tgdd-cart-modal__radio-row">
+              <label><input type="radio" name="gender" value="Anh" id="cart-gender-anh" th:checked="${userRecipientGender == 'Anh' || userRecipientGender == null}" /> Anh</label>
+              <label><input type="radio" name="gender" value="Chị" id="cart-gender-chi" th:checked="${userRecipientGender == 'Chị'}" /> Chị</label>
+            </div>
+            <div class="tgdd-cart-modal__field">
+              <label for="cart-input-name">Họ và Tên</label>
+              <input type="text" id="cart-input-name" placeholder="Nguyễn Văn A" th:value="${userRecipientName}" />
+            </div>
+            <div class="tgdd-cart-modal__field">
+              <label for="cart-input-phone">Số điện thoại</label>
+              <input type="tel" id="cart-input-phone" placeholder="0862053894" th:value="${userRecipientPhone}" />
+            </div>
+          </div>
+          <div class="tgdd-cart-modal__section">
+            <h4>Chọn hình thức giao hàng</h4>
+            <div class="tgdd-cart-modal__delivery-btns">
+              <button type="button" class="tgdd-cart-modal__delivery-btn tgdd-cart-modal__delivery-btn--active" data-type="home">🚚 Giao tận nơi</button>
+              <button type="button" class="tgdd-cart-modal__delivery-btn" data-type="store">🏪 Nhận tại siêu thị</button>
+            </div>
+            <div class="tgdd-cart-modal__address" id="cart-address-section" data-default-address th:data-default-address="${userDefaultAddress}" data-logged-in th:attr="data-logged-in=${userLoggedIn}">
+              <!-- Danh sách địa chỉ (render động bởi JS) -->
+              <div id="cart-address-list" class="tgdd-cart-modal__address-list"></div>
+              <!-- Khung nhập địa chỉ (ẩn ban đầu, hiện khi Chỉnh sửa hoặc Thêm) -->
+              <div id="cart-address-input-frame" class="tgdd-cart-modal__address-input-frame" hidden>
+                <h4 class="tgdd-cart-modal__address-title">Chọn địa chỉ giao hàng</h4>
+                <div class="tgdd-cart-modal__address-input-box">
+                  <input type="text" id="cart-input-address" class="tgdd-cart-modal__address-input" placeholder="Nhập địa chỉ (Tòa nhà, Số nhà, Tên đường,...) để gợi ý" />
+                  <span class="tgdd-cart-modal__address-search-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  </span>
+                </div>
+              </div>
+              <!-- Nút Thêm địa chỉ mới (luôn hiện khi có danh sách) -->
+              <a href="#" id="cart-add-address-btn" class="tgdd-cart-modal__add-address">+ Thêm thông tin địa chỉ giao hàng mới</a>
+            </div>
+          </div>
+          <div class="tgdd-cart-modal__section">
+            <label class="tgdd-cart-modal__checkbox">
+              <input type="checkbox" id="cart-other-recipient" />
+              <span>Người khác nhận hàng</span>
+            </label>
+          </div>
+          <button type="button" class="tgdd-cart-modal__confirm" id="cart-modal-confirm">Xác Nhận</button>
+        </div>
+      </div>
+    </div>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/tgdd-header.js}"></script>
+    <script>
+      (function () {
+        var overlay = document.getElementById("cart-delivery-overlay");
+        var modal = document.getElementById("cart-delivery-modal");
+        var recipientBlock = document.getElementById("cart-recipient-block");
+        var recipientDisplay = document.getElementById("cart-recipient-display");
+        var modalClose = document.getElementById("cart-modal-close");
+        var modalConfirm = document.getElementById("cart-modal-confirm");
+        var shippingInfo = document.getElementById("cart-shipping-info");
+        var inputName = document.getElementById("cart-input-name");
+        var inputPhone = document.getElementById("cart-input-phone");
+        var inputAddress = document.getElementById("cart-input-address");
+        var addressListEl = document.getElementById("cart-address-list");
+        var addressInputFrame = document.getElementById("cart-address-input-frame");
+        var addAddressBtn = document.getElementById("cart-add-address-btn");
+        var addressSection = document.getElementById("cart-address-section");
+
+        var addresses = [];
+        var selectedIndex = 0;
+        var editMode = null;
+
+        function initAddresses() {
+          var def = addressSection && addressSection.getAttribute("data-default-address");
+          addresses = (def && def.trim()) ? [{ text: def.trim(), isDefault: true }] : [];
+          selectedIndex = 0;
+          editMode = null;
+        }
+
+        function renderAddressList() {
+          if (!addressListEl) return;
+          addressListEl.innerHTML = "";
+          addresses.forEach(function (addr, idx) {
+            var item = document.createElement("div");
+            item.className = "tgdd-cart-modal__address-item-wrap";
+            var esc = (addr.text || "").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            item.innerHTML = '<label class="tgdd-cart-modal__address-item"><input type="radio" name="cartAddressRadio" value="' + idx + '"' + (idx === selectedIndex ? ' checked' : '') + ' /><div class="tgdd-cart-modal__address-row"><span class="tgdd-cart-modal__address-text" title="' + esc + '">' + (addr.text || "") + '</span>' + (addr.isDefault ? '<span class="tgdd-cart-modal__address-default">Mặc định</span>' : '') + '</div></label>';
+            if (idx === selectedIndex) {
+              var acts = document.createElement("div");
+              acts.className = "tgdd-cart-modal__address-actions";
+              acts.innerHTML = '<button type="button" class="tgdd-cart-modal__edit-address">✎ Chỉnh sửa</button>' + (addr.isDefault ? '' : '<button type="button" class="tgdd-cart-modal__delete-address">🗑 Xoá</button>');
+              (function (i, isDef) {
+                acts.querySelector(".tgdd-cart-modal__edit-address").onclick = function () { showAddressInput("edit", i); };
+                var del = acts.querySelector(".tgdd-cart-modal__delete-address");
+                if (del) del.onclick = function () { deleteAddress(i); };
+              })(idx, addr.isDefault);
+              item.appendChild(acts);
+            }
+            addressListEl.appendChild(item);
+            item.querySelector('input[type="radio"]').addEventListener("change", function () { selectedIndex = idx; renderAddressList(); });
+          });
+          addAddressBtn.style.display = addresses.length > 0 ? "inline-block" : "none";
+        }
+
+        function showAddressInput(mode, index) {
+          editMode = mode === "add" ? "add" : index;
+          if (inputAddress) inputAddress.value = (mode === "edit" && addresses[index]) ? addresses[index].text : "";
+          if (addressInputFrame) addressInputFrame.hidden = false;
+          if (inputAddress) inputAddress.focus();
+        }
+
+        function hideAddressInput() {
+          editMode = null;
+          if (addressInputFrame) addressInputFrame.hidden = true;
+          if (inputAddress) inputAddress.value = "";
+        }
+
+        function deleteAddress(index) {
+          addresses.splice(index, 1);
+          selectedIndex = Math.min(selectedIndex, Math.max(0, addresses.length - 1));
+          renderAddressList();
+          if (addresses.length === 0) showAddressInput("add");
+        }
+
+        function openModal() {
+          if (!overlay) return;
+          if (addresses.length === 0) initAddresses();
+          renderAddressList();
+          if (addresses.length === 0) showAddressInput("add"); else hideAddressInput();
+          overlay.hidden = false;
+          overlay.setAttribute("aria-hidden", "false");
+          document.body.style.overflow = "hidden";
+        }
+
+        function closeModal() {
+          if (!overlay) return;
+          overlay.hidden = true;
+          overlay.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+        }
+
+        if (recipientBlock) {
+          recipientBlock.addEventListener("click", openModal);
+        }
+        if (modalClose) {
+          modalClose.addEventListener("click", function () {
+            if (editMode !== null) hideAddressInput();
+            closeModal();
+          });
+        }
+        if (overlay) {
+          overlay.addEventListener("click", function (e) {
+            if (e.target === overlay) closeModal();
+          });
+        }
+        if (modalConfirm) {
+          modalConfirm.addEventListener("click", function () {
+            if (editMode !== null) {
+              var val = inputAddress ? inputAddress.value.trim() : "";
+              if (!val) { hideAddressInput(); renderAddressList(); return; }
+              if (editMode === "add") { addresses.push({ text: val, isDefault: false }); selectedIndex = addresses.length - 1; }
+              else if (typeof editMode === "number" && addresses[editMode]) { addresses[editMode].text = val; selectedIndex = editMode; }
+              hideAddressInput();
+              renderAddressList();
+            }
+            var genderRadio = document.querySelector('input[name="gender"]:checked');
+            var gender = genderRadio ? genderRadio.value : "";
+            var name = inputName ? inputName.value.trim() : "";
+            var phone = inputPhone ? inputPhone.value.trim() : "";
+            var addr = addresses[selectedIndex] ? addresses[selectedIndex].text : (inputAddress ? inputAddress.value.trim() : "");
+            var line1 = (gender ? gender + " " : "") + name + (phone ? " - " + phone : "");
+            var line2 = addr || "";
+            function esc(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+            if (recipientDisplay) {
+              var line2Html = line2 ? "<span class=\"tgdd-cart__recipient-line2\">" + esc(line2) + "</span>" : "<span class=\"tgdd-cart__recipient-line2 tgdd-cart__recipient-line2--hint\">Yêu cầu chọn địa chỉ</span>";
+              recipientDisplay.innerHTML = (line1 || line2) ? "<div class=\"tgdd-cart__recipient-row1\"><span class=\"tgdd-cart__recipient-label\">Người nhận:</span><span class=\"tgdd-cart__recipient-line1\">" + esc(line1) + "</span></div>" + line2Html : "Vui lòng cung cấp thông tin nhận hàng";
+              if (line1 || line2) recipientDisplay.classList.add("tgdd-cart__recipient-value--filled");
+            }
+            var hiddenAddr = document.getElementById("cart-hidden-address");
+            var hiddenPhone = document.getElementById("cart-hidden-phone");
+            if (hiddenAddr) hiddenAddr.value = addr || "";
+            if (hiddenPhone) hiddenPhone.value = phone || "";
+            var loggedIn = addressSection && addressSection.getAttribute("data-logged-in") === "true";
+            if (loggedIn && (name || phone || addr || gender)) {
+              var csrfMeta = document.querySelector("meta[name=_csrf]");
+              var csrfHeaderMeta = document.querySelector("meta[name=_csrf_header]");
+              var csrfToken = csrfMeta ? csrfMeta.getAttribute("content") : "";
+              var csrfHeader = csrfHeaderMeta ? csrfHeaderMeta.getAttribute("content") : "X-CSRF-TOKEN";
+              fetch("/api/account/profile", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json", [csrfHeader]: csrfToken },
+                body: JSON.stringify({ fullName: name || null, phoneNumber: phone || null, defaultAddress: addr || null, gender: gender || null })
+              }).catch(function() {});
+            }
+            closeModal();
+            if (shippingInfo) { shippingInfo.hidden = false; updateCartOrderTotal(); }
+          });
+        }
+
+        if (addAddressBtn) addAddressBtn.addEventListener("click", function (e) { e.preventDefault(); showAddressInput("add"); });
+
+        /* AJAX cho cart: Xoá / Cập nhật số lượng không reload trang (chỉ khi đã đăng nhập) */
+        var cartList = document.getElementById("cart-list");
+        var subtotalCount = document.getElementById("cart-subtotal-count");
+        var subtotalTotal = document.getElementById("cart-subtotal-total");
+        function fmtVnd(n) { return Number(n).toLocaleString("vi-VN") + "₫"; }
+        if (cartList && cartList.getAttribute("data-cart-ajax") === "true") {
+          cartList.addEventListener("submit", function (e) {
+            var form = e.target;
+            if (!form.matches(".tgdd-cart__item-remove-form") && !form.matches(".tgdd-cart__qty-form")) return;
+            e.preventDefault();
+            var row = form.closest(".tgdd-cart__item");
+            var itemId = row && row.getAttribute("data-item-id");
+            if (!itemId) return;
+            if (form.matches(".tgdd-cart__item-remove-form")) {
+              if (!confirm("Xóa sản phẩm khỏi giỏ?")) return;
+              fetch("/api/cart/items/" + itemId, { method: "DELETE", credentials: "include" })
+                .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+                .then(function (data) {
+                  row.remove();
+                  var shipList = document.getElementById("cart-shipping-list");
+                  if (shipList) { var card = shipList.querySelector('.tgdd-cart__shipping-card[data-item-id="' + itemId + '"]'); if (card) card.remove(); }
+                  if (subtotalCount) subtotalCount.textContent = data.items ? data.items.length : 0;
+                  if (subtotalTotal) subtotalTotal.textContent = fmtVnd(data.totalAmount != null ? data.totalAmount : 0);
+                  updateCartOrderTotal();
+                  if (data.items && data.items.length === 0) window.location.href = "/cart";
+                })
+                .catch(function () { window.location.reload(); });
+              return;
+            }
+            if (row.getAttribute("data-cart-loading") === "true") { e.preventDefault(); return; }
+            row.setAttribute("data-cart-loading", "true");
+            var qtyBtns = row.querySelectorAll(".tgdd-cart__qty-form button[type='submit']");
+            qtyBtns.forEach(function (b) { b.disabled = true; });
+            var qtyInput = form.querySelector('input[name="quantity"]');
+            var qty = qtyInput ? parseInt(qtyInput.value, 10) : 1;
+            var finish = function () { row.removeAttribute("data-cart-loading"); qtyBtns.forEach(function (b) { b.disabled = false; }); };
+            fetch("/api/cart/items/" + itemId, {
+              method: "PUT",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ quantity: qty })
+            })
+              .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+              .then(function (data) {
+                var numEl = row.querySelector(".tgdd-cart__qty-num");
+                if (numEl) numEl.textContent = qty;
+                var minusForm = row.querySelector(".tgdd-cart__qty-form--minus");
+                var plusForm = row.querySelector(".tgdd-cart__qty-form--plus");
+                var minusInput = minusForm && minusForm.querySelector('input[name="quantity"]');
+                var plusInput = plusForm && plusForm.querySelector('input[name="quantity"]');
+                if (minusInput) minusInput.value = Math.max(1, qty - 1);
+                if (plusInput) plusInput.value = qty + 1;
+                var shipList = document.getElementById("cart-shipping-list");
+                if (shipList) { var card = shipList.querySelector('.tgdd-cart__shipping-card[data-item-id="' + itemId + '"]'); var qtySpan = card && card.querySelector('.tgdd-cart__shipping-card-qty'); if (qtySpan) qtySpan.textContent = qty; }
+                if (subtotalCount) subtotalCount.textContent = data.items ? data.items.length : 0;
+                if (subtotalTotal) subtotalTotal.textContent = fmtVnd(data.totalAmount != null ? data.totalAmount : 0);
+                updateCartOrderTotal();
+              })
+              .catch(function () { window.location.reload(); })
+              .finally(finish);
+          });
+        }
+
+        var deliveryBtns = document.querySelectorAll(".tgdd-cart-modal__delivery-btn");
+        deliveryBtns.forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            deliveryBtns.forEach(function (b) { b.classList.remove("tgdd-cart-modal__delivery-btn--active"); });
+            btn.classList.add("tgdd-cart-modal__delivery-btn--active");
+          });
+        });
+
+        function parseVnd(el) {
+          if (!el || !el.textContent) return 0;
+          var s = el.textContent.replace(/\./g, "").replace(/₫/g, "").trim();
+          return parseInt(s, 10) || 0;
+        }
+        function updateCartOrderTotal() {
+          var subtotalEl = document.getElementById("cart-subtotal-total");
+          var totalEl = document.getElementById("cart-order-total");
+          var feeEl = document.getElementById("cart-shipping-fee-text");
+          var fastCheck = document.getElementById("cart-fast-shipping");
+          if (!totalEl || !subtotalEl) return;
+          var base = parseVnd(subtotalEl);
+          var fee = (fastCheck && fastCheck.checked) ? 50000 : 0;
+          if (feeEl) feeEl.textContent = fee > 0 ? "50.000₫" : "Miễn phí";
+          totalEl.textContent = fmtVnd(base + fee);
+        }
+        var fastShipping = document.getElementById("cart-fast-shipping");
+        if (fastShipping) fastShipping.addEventListener("change", updateCartOrderTotal);
+        var agreeCheck = document.getElementById("cart-agree-policy");
+        var placeBtn = document.getElementById("cart-place-order-btn");
+        if (agreeCheck && placeBtn) {
+          agreeCheck.addEventListener("change", function () { placeBtn.disabled = !agreeCheck.checked; });
+        }
+        var vipToggle = document.getElementById("cart-vip-toggle");
+        if (vipToggle) vipToggle.addEventListener("click", function () {
+          var on = vipToggle.getAttribute("aria-pressed") === "true";
+          vipToggle.setAttribute("aria-pressed", !on);
+        });
+        var specialOther = document.getElementById("cart-special-other");
+        var specialOtherWrap = document.getElementById("cart-special-other-wrap");
+        if (specialOther && specialOtherWrap) {
+          specialOther.addEventListener("change", function () { specialOtherWrap.hidden = !specialOther.checked; });
+        }
+        var deliveryTimeBtn = document.querySelector(".tgdd-cart__delivery-time-btn");
+        if (deliveryTimeBtn) deliveryTimeBtn.addEventListener("click", function (e) { e.preventDefault(); });
+        var voucherLink = document.querySelector(".tgdd-cart__voucher-link");
+        if (voucherLink) voucherLink.addEventListener("click", function (e) { e.preventDefault(); });
+        var policyLink = document.querySelector(".tgdd-cart__policy-link");
+        if (policyLink) policyLink.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); });
+        var cartPaymentRadios = document.querySelectorAll('input[name="cartPaymentMethod"]');
+        var cartQrBlock = document.getElementById("cart-qr-block");
+        function updateCartQr() {
+          if (!cartQrBlock || !cartPaymentRadios.length) return;
+          var selected = document.querySelector('input[name="cartPaymentMethod"]:checked');
+          var useQr = selected && selected.value === "BANK_TRANSFER";
+          cartQrBlock.hidden = !useQr;
+        }
+        if (cartPaymentRadios.length && cartQrBlock) {
+          cartPaymentRadios.forEach(function (r) { r.addEventListener("change", updateCartQr); });
+          updateCartQr();
+        }
+        if (document.getElementById("cart-shipping-info") && !document.getElementById("cart-shipping-info").hidden) updateCartOrderTotal();
+
+        if (placeBtn) {
+          placeBtn.addEventListener("click", function () {
+            if (placeBtn.disabled) return;
+            var hiddenAddr = document.getElementById("cart-hidden-address");
+            var hiddenPhone = document.getElementById("cart-hidden-phone");
+            var addr = (hiddenAddr && hiddenAddr.value) ? hiddenAddr.value.trim() : "";
+            var phone = (hiddenPhone && hiddenPhone.value) ? hiddenPhone.value.trim() : "";
+            var paymentRadios = document.querySelectorAll('input[name="cartPaymentMethod"]:checked');
+            var payment = (paymentRadios.length > 0) ? paymentRadios[0].value : "CASH_ON_DELIVERY";
+            var noteParts = [];
+            document.querySelectorAll('input[name="cartSpecialRequest"]:checked').forEach(function (c) {
+              if (c.id === "cart-special-other") {
+                var otherInput = document.getElementById("cart-special-other-input");
+                var otherVal = (otherInput && otherInput.value) ? otherInput.value.trim() : "";
+                noteParts.push(otherVal ? "Yêu cầu khác: " + otherVal : "Yêu cầu khác");
+              } else { noteParts.push(c.value); }
+            });
+            var note = noteParts.length > 0 ? noteParts.join("; ") : "";
+            var fastCheck = document.getElementById("cart-fast-shipping");
+            var shippingFee = (fastCheck && fastCheck.checked) ? 50000 : 0;
+            if (!addr || !phone) { alert("Vui lòng xác nhận thông tin người nhận và địa chỉ giao hàng."); return; }
+            var csrfMeta = document.querySelector("meta[name=_csrf]");
+            var csrfHeaderMeta = document.querySelector("meta[name=_csrf_header]");
+            var csrfToken = csrfMeta ? csrfMeta.getAttribute("content") : "";
+            var csrfHeader = csrfHeaderMeta ? csrfHeaderMeta.getAttribute("content") : "X-CSRF-TOKEN";
+            placeBtn.disabled = true;
+            fetch("/api/orders/checkout", {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json", [csrfHeader]: csrfToken },
+              body: JSON.stringify({ shippingAddress: addr, phoneNumber: phone, paymentMethod: payment, note: note || null, shippingFee: shippingFee })
+            })
+              .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+              .then(function (data) { window.location.href = "/orders/" + data.id; })
+              .catch(function () { alert("Đặt hàng thất bại. Vui lòng thử lại."); placeBtn.disabled = false; });
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

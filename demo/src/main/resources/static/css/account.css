@@ -1,0 +1,412 @@
+body {
+  background: #f0f0f0;
+}
+
+.tgdd-account-main {
+  max-width: 1120px;
+  margin: 0 auto 3rem;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.tgdd-account-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+.tgdd-account-sidebar {
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+  font-size: 0.9375rem;
+}
+
+.tgdd-account-sidebar__user {
+  margin-bottom: 1rem;
+}
+
+.tgdd-account-sidebar__name {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.15rem;
+}
+
+.tgdd-account-sidebar__phone {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.tgdd-account-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.tgdd-account-sidebar__item {
+  border: none;
+  background: none;
+  text-align: left;
+  padding: 0.35rem 0.25rem;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  color: #111827;
+  cursor: pointer;
+}
+
+.tgdd-account-sidebar__item--active {
+  background: #e5f0ff;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.tgdd-account-sidebar__logout {
+  display: inline-block;
+  margin: 0.5rem 0;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #f97316;
+  color: #ea580c;
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.tgdd-account-sidebar__logout:hover {
+  background: #fff7ed;
+}
+
+.tgdd-account-sidebar__points-card {
+  margin-top: 0.75rem;
+}
+
+.tgdd-account-sidebar__points-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.tgdd-account-content {
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 1rem 1.25rem 1.5rem;
+  font-size: 0.9375rem;
+}
+
+.tgdd-account-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.tgdd-account-alert {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.tgdd-account-alert--success {
+  background: #ecfdf3;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.tgdd-account-alert--error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+/* Sections: dùng server-side tab nên luôn hiển thị block */
+.tgdd-account-section {
+  display: block;
+}
+
+.tgdd-account-section--active {
+  display: block;
+}
+
+.tgdd-account-section__header {
+  margin-bottom: 0.5rem;
+}
+
+.tgdd-account-section__header h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Orders */
+.tgdd-account-orders__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tgdd-account-orders__filter {
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  color: #374151;
+}
+
+.tgdd-account-orders__filter--active {
+  border-color: #2563eb;
+  background: #e5f0ff;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.tgdd-account-orders__empty {
+  padding: 0.75rem 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.tgdd-account-orders__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tgdd-account-order-card {
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem 0.75rem 0.5rem;
+  background: #ffffff;
+}
+
+.tgdd-account-order-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.tgdd-account-order-card__label {
+  color: #6b7280;
+}
+
+.tgdd-account-order-card__id {
+  font-weight: 600;
+  margin-left: 0.25rem;
+}
+
+.tgdd-account-order-card__time {
+  color: #4b5563;
+}
+
+.tgdd-account-order-card__status {
+  font-size: 0.8125rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.tgdd-account-order-card__status--cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.tgdd-account-order-card__status--success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.tgdd-account-order-card__body {
+  font-size: 0.875rem;
+}
+
+.tgdd-account-order-card__product {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tgdd-account-order-card__product-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.tgdd-account-order-card__product-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tgdd-account-order-card__product-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tgdd-account-order-card__product-name {
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 0.15rem;
+}
+
+.tgdd-account-order-card__product-total {
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.tgdd-account-order-card__product-total strong {
+  color: #111827;
+}
+
+.tgdd-account-order-card__product-actions {
+  flex-shrink: 0;
+}
+
+.tgdd-account-order-card__detail-btn {
+  display: inline-block;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid #f97316;
+  color: #ea580c;
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+
+.tgdd-account-order-card__detail-btn:hover {
+  background: #fff7ed;
+}
+
+/* Address book */
+.tgdd-account-address-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tgdd-account-panel {
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 0.75rem 0.9rem;
+}
+
+.tgdd-account-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.tgdd-account-panel__head h3 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.tgdd-account-panel__edit {
+  border: none;
+  background: none;
+  font-size: 0.8125rem;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.tgdd-account-panel__body {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.tgdd-account-person__gender {
+  display: flex;
+  gap: 1.5rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.tgdd-account-person__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.tgdd-account-person__field label {
+  display: block;
+  font-size: 0.8125rem;
+  margin-bottom: 0.25rem;
+}
+
+.tgdd-account-person__field input {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.875rem;
+}
+
+.tgdd-account-person__actions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+
+.tgdd-account-person__cancel {
+  border: none;
+  background: none;
+  color: #111827;
+  cursor: pointer;
+}
+
+.tgdd-account-person__save {
+  border: none;
+  background: none;
+  color: #f97316;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tgdd-account-address__view p {
+  margin: 0;
+}
+
+.tgdd-account-address__edit label {
+  display: block;
+  font-size: 0.8125rem;
+  margin-bottom: 0.25rem;
+}
+
+.tgdd-account-address__edit textarea {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.875rem;
+  resize: vertical;
+}
+
+/* Voucher */
+.tgdd-account-voucher__placeholder {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .tgdd-account-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+

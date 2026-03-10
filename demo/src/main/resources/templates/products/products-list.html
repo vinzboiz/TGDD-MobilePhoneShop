@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="vi" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quản lý sản phẩm - Admin</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" th:href="@{/css/header.css(v=2)}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" th:href="@{/css/admin.css}" />
+  </head>
+  <body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main class="admin-page">
+      <section class="admin-shell">
+        <div class="admin-header mb-3">
+          <div>
+            <div class="admin-header__title">Quản lý sản phẩm</div>
+            <p class="admin-header__subtitle">
+              Xem, lọc và chỉnh sửa danh sách sản phẩm theo danh mục.
+            </p>
+          </div>
+          <a href="/admin" class="admin-link-pill">← Về bảng điều khiển</a>
+        </div>
+
+        <div class="admin-card mb-3">
+          <!-- Flash Messages -->
+      <div
+        th:if="${successMessage}"
+        class="alert alert-success alert-dismissible fade show"
+        role="alert"
+      >
+        <strong th:text="${successMessage}"></strong>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div
+        th:if="${errorMessage}"
+        class="alert alert-danger alert-dismissible fade show"
+        role="alert"
+      >
+        <strong th:text="${errorMessage}"></strong>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
+      </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="admin-quick__section-title mb-0">
+              Danh sách sản phẩm
+            </h2>
+            <a href="/products/add" class="admin-quick__btn admin-quick__btn--primary">
+              ➕ Thêm sản phẩm mới
+            </a>
+          </div>
+
+          <!-- Filter Section -->
+        <form th:action="@{/products}" method="get" class="row g-3">
+          <div class="col-md-4">
+            <label for="parentCategoryId" class="form-label">Danh mục cha:</label>
+            <select id="parentCategoryId" name="parentCategoryId" class="form-select">
+              <option value="">Tất cả danh mục cha</option>
+              <option
+                th:each="pc : ${parentCategories}"
+                th:value="${pc.id}"
+                th:text="${pc.name}"
+                th:selected="${pc.id == selectedParentCategoryId}"
+              >
+                Parent
+              </option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="categoryId" class="form-label">Danh mục con:</label>
+            <select id="categoryId" name="categoryId" class="form-select">
+              <option value="">Tất cả danh mục con</option>
+              <option
+                th:each="category : ${categories}"
+                th:value="${category.id}"
+                th:text="${category.name}"
+                th:selected="${category.id == selectedCategoryId}"
+              >
+                Category
+              </option>
+            </select>
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">
+              🔍 Filter
+            </button>
+          </div>
+        </form>
+      </div>
+
+        </div>
+
+        <!-- Products Grid -->
+        <div class="row g-4 mt-3">
+        <div th:if="${#lists.isEmpty(products)}" class="col-12">
+          <div class="alert alert-info" role="alert">
+            No products found.
+            <a href="/products/add" class="alert-link">Create one!</a>
+          </div>
+        </div>
+
+        <div th:each="product : ${products}" class="col-md-6 col-lg-4">
+          <div class="card product-card">
+            <!-- Product Image -->
+            <div
+              th:if="${product.imageData != null}"
+              class="card-img-container"
+            >
+              <img
+                th:src="@{/products/image/{id}(id=${product.id})}"
+                class="card-img-top"
+                alt="Product Image"
+              />
+              <div class="d-flex mt-1" th:if="${product.secondaryImages}">
+                <img
+                  th:each="si : ${product.secondaryImages}"
+                  th:src="@{/products/image/{id}/{idx}(id=${product.id},idx=${si.position + 1})}"
+                  th:alt="${product.name + ' - image ' + (si.position + 1)}"
+                  alt="Product thumbnail"
+                  class="thumb-img me-1"
+                />
+              </div>
+            </div>
+            <div
+              th:unless="${product.imageData != null}"
+              class="card-img-top d-flex align-items-center justify-content-center text-muted"
+            >
+              <span>📷 No Image</span>
+            </div>
+
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title" th:text="${product.name}">Product Name</h5>
+              <p
+                class="card-text small text-muted"
+                th:text="${'Category: ' + (product.category != null ? product.category.name : (product.parentCategory != null ? product.parentCategory.name : '—'))}"
+              >
+                Category
+              </p>
+              <p class="card-text">
+                <span
+                  th:if="${product.discountPercent != null and product.discountPercent > 0}"
+                >
+                  <span
+                    class="text-muted text-decoration-line-through"
+                    th:text="'$' + ${#numbers.formatDecimal(product.price, 1, 2)}"
+                  ></span>
+                  <span
+                    class="ms-2 text-danger fw-bold"
+                    th:text="'$' + ${#numbers.formatDecimal(product.price * (100 - product.discountPercent) / 100, 1, 2)}"
+                  ></span>
+                  <span
+                    class="badge bg-danger ms-1"
+                    th:text="${product.discountPercent + '% OFF'}"
+                  ></span>
+                </span>
+                <span
+                  th:unless="${product.discountPercent != null and product.discountPercent > 0}"
+                >
+                  <strong
+                    th:text="'$' + ${#numbers.formatDecimal(product.price, 1, 2)}"
+                    >$0.00</strong
+                  >
+                </span>
+              </p>
+
+              <div
+                th:if="${product.description}"
+                class="card-text small text-muted mb-3"
+              >
+                <span th:text="${#strings.abbreviate(product.description, 80)}"
+                  >Description</span
+                >
+              </div>
+
+              <div class="mt-auto d-grid gap-2">
+                <form
+                  th:action="@{/cart/add/{id}(id=${product.id})}"
+                  method="post"
+                  class="d-grid"
+                  sec:authorize="isAuthenticated()"
+                >
+                  <input type="hidden" name="quantity" value="1" />
+                  <button type="submit" class="btn btn-success btn-sm">
+                    🛒 Add to Cart
+                  </button>
+                </form>
+                <a
+                  th:href="@{/products/{id}(id=${product.id})}"
+                  class="btn btn-info btn-sm"
+                  >🔍 View</a
+                >
+                <a
+                  th:href="@{/products/edit/{id}(id=${product.id})}"
+                  class="btn btn-primary btn-sm"
+                  >✏️ Edit</a
+                >
+                <form
+                  th:action="@{/products/delete/{id}(id=${product.id})}"
+                  method="post"
+                  onsubmit="return confirm('Delete this product?');"
+                >
+                  <button type="submit" class="btn btn-danger btn-sm w-100">
+                    🗑️ Delete
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+      </section>
+    </main>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+/* ===== CSS chung (reset, biến, body) - dùng cho mọi trang ===== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --tgdd-yellow: #ffd400;
+  --tgdd-yellow-dark: #f9a825;
+  --tgdd-gray-bg: #f5f5f7;
+  --tgdd-text-main: #333;
+  --tgdd-border: #e0e0e0;
+  --tgdd-red: #ff424e;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--tgdd-gray-bg);
+  color: var(--tgdd-text-main);
+}
+
+a {
+  color: inherit;
+}
+
+a:hover {
+  color: inherit;
+}
