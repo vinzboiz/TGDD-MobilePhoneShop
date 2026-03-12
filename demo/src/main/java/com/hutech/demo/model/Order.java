@@ -50,6 +50,13 @@ public class Order {
     @Column(length = 255)
     private String note;
 
+    /**
+     * Điểm thưởng quy đổi từ giá trị sản phẩm (không tính phí ship).
+     * Mỗi 10.000₫ tiền hàng = 1 điểm.
+     */
+    @Column(name = "reward_points")
+    private Integer rewardPoints;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderDetail> orderDetails;
 

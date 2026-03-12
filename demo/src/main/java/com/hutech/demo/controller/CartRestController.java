@@ -36,7 +36,8 @@ public class CartRestController {
     public record CartDto(
             Long id,
             List<CartItemDto> items,
-            Double totalAmount
+            Double totalAmount,
+            Integer totalQuantity
     ) {}
 
     public record AddItemRequest(
@@ -52,7 +53,8 @@ public class CartRestController {
     public CartDto getCart(Principal principal) {
         User user = getCurrentUser(principal);
         Cart cart = cartService.getActiveCart(user);
-        cart.calculateTotal();
+        // Tính lại tổng theo quota khuyến mãi để API trả đúng
+        cart.setTotalAmount(recalculateTotalWithPromo(cart));
         return toDto(cart);
     }
 
@@ -60,6 +62,7 @@ public class CartRestController {
     public CartDto addItem(@RequestBody AddItemRequest request, Principal principal) {
         User user = getCurrentUser(principal);
         Cart cart = cartService.addToCart(user, request.productId(), request.quantity());
+        cart.setTotalAmount(recalculateTotalWithPromo(cart));
         return toDto(cart);
     }
 
@@ -71,6 +74,7 @@ public class CartRestController {
     ) {
         getCurrentUser(principal); // ensure authenticated
         Cart cart = cartService.updateItemQuantity(itemId, request.quantity());
+        cart.setTotalAmount(recalculateTotalWithPromo(cart));
         return toDto(cart);
     }
 
@@ -78,6 +82,7 @@ public class CartRestController {
     public CartDto removeItem(@PathVariable Long itemId, Principal principal) {
         getCurrentUser(principal); // ensure authenticated
         Cart cart = cartService.removeFromCart(itemId);
+        cart.setTotalAmount(recalculateTotalWithPromo(cart));
         return toDto(cart);
     }
 
@@ -112,13 +117,48 @@ public class CartRestController {
                     .reduce(BigDecimal.ZERO, BigDecimal::add)
                     .doubleValue();
 
+        int totalQty = cart.getItems() == null ? 0
+                : cart.getItems().stream().mapToInt(CartItem::getQuantity).sum();
+
         return new CartDto(
                 cart.getId(),
                 itemDtos,
-                total
+                total,
+                totalQty
         );
     }
 
+    /**
+     * Tính lại tổng tiền giỏ hàng theo quota khuyến mãi (không trừ promoRemaining).
+     */
+    private java.math.BigDecimal recalculateTotalWithPromo(Cart cart) {
+        java.math.BigDecimal subtotal = java.math.BigDecimal.ZERO;
+        if (cart.getItems() == null) {
+            return subtotal;
+        }
+        for (CartItem item : cart.getItems()) {
+            var p = item.getProduct();
+            if (p == null || p.getPrice() == null || item.getQuantity() == null) continue;
+            int quantity = item.getQuantity();
+            int discountPercent = p.getDiscountPercent() != null ? p.getDiscountPercent() : 0;
+            java.math.BigDecimal basePrice = java.math.BigDecimal.valueOf(p.getPrice());
+
+            int promoRemain = p.getPromoRemaining() != null ? p.getPromoRemaining() : 0;
+            int discountedQty = (discountPercent > 0 && promoRemain > 0)
+                    ? Math.min(quantity, promoRemain)
+                    : 0;
+            int normalQty = quantity - discountedQty;
+
+            java.math.BigDecimal discountedPrice = basePrice
+                    .multiply(java.math.BigDecimal.valueOf(100 - discountPercent))
+                    .divide(java.math.BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+
+            java.math.BigDecimal lineTotal = discountedPrice.multiply(java.math.BigDecimal.valueOf(discountedQty))
+                    .add(basePrice.multiply(java.math.BigDecimal.valueOf(normalQty)));
+            subtotal = subtotal.add(lineTotal);
+        }
+        return subtotal;
+    }
     private CartItemDto toItemDto(CartItem item) {
         Double unitPrice = item.getUnitPrice() != null
                 ? item.getUnitPrice().doubleValue()

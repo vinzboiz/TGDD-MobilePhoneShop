@@ -83,7 +83,10 @@
 
             <div class="tgdd-flashsale-products">
               <th:block th:each="product : ${products != null ? products : #lists.createEmptyList()}">
-                <div class="tgdd-flashsale-card">
+                <div
+                  class="tgdd-flashsale-card"
+                  th:classappend="${product.stock == null || product.stock <= 0} ? ' tgdd-flashsale-card--soldout' : ''"
+                >
                   <a th:href="@{/products/{id}(id=${product.id})}" class="tgdd-flashsale-card__image-wrap">
                     <img th:if="${product.imageData != null}" th:src="@{/products/image/{id}(id=${product.id})}" alt="Sản phẩm" />
                     <div th:unless="${product.imageData != null}" class="tgdd-flashsale-card__placeholder">Ảnh</div>
@@ -91,19 +94,65 @@
                   </a>
                   <div class="tgdd-flashsale-card__body">
                     <h4 class="tgdd-flashsale-card__name"><a th:href="@{/products/{id}(id=${product.id})}" th:text="${product.name != null ? product.name : 'Sản phẩm'}">Tên sản phẩm</a></h4>
-                    <div class="tgdd-flashsale-card__price">
-                      <span class="tgdd-flashsale-card__price-current" th:text="${#numbers.formatInteger((product.price != null && product.discountPercent != null && product.discountPercent > 0) ? product.price * (100 - product.discountPercent) / 100 : (product.price != null ? product.price : 0), 3, 'POINT') + '₫'}">0₫</span>
+                    <div
+                      class="tgdd-flashsale-card__price"
+                      th:with="
+                        hasPromo=${product.discountPercent != null && product.discountPercent > 0 && product.promoRemaining != null && product.promoRemaining > 0},
+                        basePrice=${product.price != null ? product.price : 0},
+                        promoPrice=${hasPromo} ? ${basePrice * (100 - product.discountPercent) / 100} : ${basePrice}
+                      "
+                    >
+                      <span
+                        class="tgdd-flashsale-card__price-current"
+                        th:text="${#numbers.formatInteger(promoPrice, 3, 'POINT') + '₫'}"
+                        >0₫</span
+                      >
                       <div class="tgdd-flashsale-card__price-row">
-                        <span class="tgdd-flashsale-card__price-old" th:if="${product.discountPercent != null && product.discountPercent > 0 && product.price != null}" th:text="${#numbers.formatInteger(product.price, 3, 'POINT') + '₫'}">0₫</span>
-                        <span class="tgdd-flashsale-card__discount-tag" th:if="${product.discountPercent != null && product.discountPercent > 0}" th:text="${'-' + product.discountPercent + '%'}">-0%</span>
+                        <span
+                          class="tgdd-flashsale-card__price-old"
+                          th:if="${hasPromo}"
+                          th:text="${#numbers.formatInteger(basePrice, 3, 'POINT') + '₫'}"
+                          >0₫</span
+                        >
+                        <span
+                          class="tgdd-flashsale-card__discount-tag"
+                          th:if="${hasPromo}"
+                          th:text="${'-' + product.discountPercent + '%'}"
+                          >-0%</span
+                        >
+                        <span
+                          class="tgdd-flashsale-card__discount-tag tgdd-flashsale-card__discount-tag--ended"
+                          th:if="${!hasPromo && product.discountPercent != null && product.discountPercent > 0}"
+                          >Hết khuyến mãi</span
+                        >
                       </div>
                     </div>
                     <div class="tgdd-flashsale-card__stock">
-                      <img th:src="@{/images/fireflashsale.png}" src="/images/fireflashsale.png" alt="" class="tgdd-flashsale-card__stock-icon" aria-hidden="true" />
+                      <img
+                        th:src="@{/images/fireflashsale.png}"
+                        src="/images/fireflashsale.png"
+                        alt=""
+                        class="tgdd-flashsale-card__stock-icon"
+                        aria-hidden="true"
+                      />
                       <span class="tgdd-flashsale-card__stock-bar">
-                        <span class="tgdd-flashsale-card__stock-fill" th:style="${'width:' + (product.stock != null && product.stock > 0 ? (product.stock >= 10 ? 100 : product.stock * 10) : 0) + '%'}"></span>
+                        <span
+                          class="tgdd-flashsale-card__stock-fill"
+                          th:with="remain=${product.promoRemaining != null ? product.promoRemaining : 0}"
+                          th:style="${'width:' + (remain > 0 ? (remain >= 10 ? 100 : remain * 10) : 0) + '%'}"
+                        ></span>
 
-                        <b class="tgdd-flashsale-card__stock-text" th:text="|Còn ${product.stock != null ? product.stock : 0} suất|">Còn 0 suất</b>
+                        <b
+                          class="tgdd-flashsale-card__stock-text"
+                          th:if="${product.promoRemaining != null && product.promoRemaining > 0}"
+                          th:text="|Còn ${product.promoRemaining} suất|"
+                          >Còn 0 suất</b
+                        >
+                        <b
+                          class="tgdd-flashsale-card__stock-text tgdd-flashsale-card__stock-text--ended"
+                          th:if="${product.promoRemaining == null || product.promoRemaining <= 0}"
+                          >Hết khuyến mãi</b
+                        >
                       </span>
                     </div>
                     <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" class="tgdd-flashsale-card__form">

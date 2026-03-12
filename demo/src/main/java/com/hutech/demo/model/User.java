@@ -63,6 +63,12 @@ public class User {
 
     private LocalDateTime lastLogin;
 
+    /**
+     * Tổng điểm thưởng tích lũy từ các đơn hàng (Quà Tặng VIP).
+     */
+    @Column(name = "total_reward_points")
+    private Integer totalRewardPoints = 0;
+
     // Relationships
     // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     // private List<Cart> carts;

@@ -42,6 +42,18 @@ public class Product {
     @Column(columnDefinition = "LONGTEXT")
     private String description;
 
+    /**
+     * Số lượng tối đa được áp dụng giá khuyến mãi (null hoặc 0 = không giới hạn).
+     */
+    @Column(name = "promo_quota")
+    private Integer promoQuota;
+
+    /**
+     * Số lượng khuyến mãi còn lại; mặc định bằng promoQuota khi tạo mới.
+     */
+    @Column(name = "promo_remaining")
+    private Integer promoRemaining;
+
     /** Danh mục con (chi tiết). Null nếu sản phẩm gán trực tiếp vào danh mục cha. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = true)

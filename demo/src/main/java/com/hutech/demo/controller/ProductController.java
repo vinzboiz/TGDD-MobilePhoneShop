@@ -140,6 +140,10 @@ public class ProductController {
         }
 
         try {
+            // Khởi tạo số lượng khuyến mãi còn lại bằng quota nếu chưa set
+            if (product.getPromoQuota() != null && product.getPromoQuota() > 0 && product.getPromoRemaining() == null) {
+                product.setPromoRemaining(product.getPromoQuota());
+            }
             if (product.getSecondaryImages() == null) {
                 product.setSecondaryImages(new java.util.ArrayList<>());
             }
@@ -208,8 +212,17 @@ public class ProductController {
             existingProduct.setName(product.getName());
             existingProduct.setPrice(product.getPrice());
             existingProduct.setDescription(product.getDescription());
+            // cập nhật số lượng tồn kho và % giảm giá
+            existingProduct.setStock(product.getStock());
+            existingProduct.setDiscountPercent(product.getDiscountPercent());
             existingProduct.setCategory(product.getCategory());
             existingProduct.setParentCategory(product.getParentCategory());
+            existingProduct.setPromoQuota(product.getPromoQuota());
+            // Nếu promoRemaining chưa có, gán bằng quota mới
+            if (existingProduct.getPromoQuota() != null && existingProduct.getPromoQuota() > 0
+                    && existingProduct.getPromoRemaining() == null) {
+                existingProduct.setPromoRemaining(existingProduct.getPromoQuota());
+            }
 
             // Handle image(s) if new ones uploaded
             if ((imageFile != null && !imageFile.isEmpty()) ||

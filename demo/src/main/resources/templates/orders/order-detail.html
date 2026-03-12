@@ -170,9 +170,21 @@
               alt="Logo"
             />
           </div>
-          <div class="tgdd-order-card__earn-text">
-            Bạn tích được <strong style="color: black;">1836</strong> điểm cho đơn hàng này. Xem hướng dẫn dùng dùng điểm <a style="color:rgb(25, 0, 255); text-decoration: none;" href="#">tại đây</a>
-          </div>
+        <div class="tgdd-order-card__earn-text">
+          Bạn tích được
+          <strong
+            th:text="${order.rewardPoints != null ? #numbers.formatInteger(order.rewardPoints, 3, 'POINT') + ' điểm' : '0 điểm'}"
+            >0 điểm</strong
+          >
+          cho đơn hàng này.
+          <span class="tgdd-order-card__earn-note">
+            (Tổng điểm tích lũy hiện tại:
+            <strong
+              th:text="${order.user != null && order.user.totalRewardPoints != null ? #numbers.formatInteger(order.user.totalRewardPoints, 3, 'POINT') + ' điểm' : '0 điểm'}"
+              >0 điểm</strong
+            >)
+          </span>
+        </div>
         </div>
 
         <!-- Trạng thái thanh toán + hình thức thanh toán -->

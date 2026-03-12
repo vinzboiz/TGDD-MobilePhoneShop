@@ -65,6 +65,14 @@
             0862053894
           </div>
 
+          <div class="mb-3 small text-muted">
+            Tổng điểm tích lũy:
+            <strong
+              th:text="${user.totalRewardPoints != null ? #numbers.formatInteger(user.totalRewardPoints, 3, 'POINT') + ' điểm' : '0 điểm'}"
+              >0 điểm</strong
+            >
+          </div>
+
           <ul class="nav nav-pills flex-column" id="accountTab" role="tablist">
             <li class="nav-item" role="presentation">
               <button

@@ -687,7 +687,22 @@ border:none;
   box-sizing: border-box;
   padding: 8px;
   outline: none;
+}
 
+/* Trạng thái sold out: làm mờ thẻ, hạn chế tương tác */
+.tgdd-flashsale-card--soldout {
+  opacity: 0.6;
+  filter: grayscale(0.3);
+}
+
+.tgdd-flashsale-card--soldout .tgdd-flashsale-card__btn {
+  background: #ccc;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.tgdd-flashsale-card--soldout .tgdd-flashsale-card__image-wrap:hover img {
+  transform: none;
 }
 
 .tgdd-flashsale-card a,
@@ -806,7 +821,7 @@ gap: 0.5rem;
 
 .tgdd-flashsale-card__stock-text {
   position: absolute;
- left:30%;
+  left: 30%;
   top: 48%;
   transform: translateY(-50%);
   font-size: 0.87rem;
@@ -814,6 +829,10 @@ gap: 0.5rem;
   color: #333;
   z-index: 1;
   margin: 0;
+}
+
+.tgdd-flashsale-card__stock-text--ended {
+  color: #666;
 }
 
 .tgdd-flashsale-card__form {

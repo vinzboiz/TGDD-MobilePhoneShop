@@ -183,6 +183,19 @@
           </div>
 
           <div class="mb-3">
+            <label for="promoQuota" class="form-label">Số lượng khuyến mãi (suất)</label>
+            <input
+              type="number"
+              class="form-control"
+              id="promoQuota"
+              th:field="*{promoQuota}"
+              min="0"
+              step="1"
+              placeholder="0 = không giới hạn"
+            />
+          </div>
+
+          <div class="mb-3">
             <label for="parentCategoryId" class="form-label"
               >Danh mục cha <span class="text-danger">*</span></label
             >

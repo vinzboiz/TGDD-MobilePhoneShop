@@ -1,11 +1,13 @@
 package com.hutech.demo.controller;
 
 import com.hutech.demo.model.Cart;
+import com.hutech.demo.model.CartItem;
 import com.hutech.demo.model.User;
 import com.hutech.demo.model.Product;
 import com.hutech.demo.service.CartService;
 import com.hutech.demo.service.ProductService;
 import com.hutech.demo.service.UserService;
+import com.hutech.demo.service.OrderService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -40,7 +42,7 @@ public class CartController {
         Map<Long, Integer> items = new HashMap<>(); // productId -> quantity
     }
 
-    // DTO for view
+    // DTO for view (guest cart)
     public static class CartView {
         public static class Item {
             public Long id; // null for guest, use product.id for remove
@@ -51,6 +53,7 @@ public class CartController {
         }
         public java.util.List<Item> items = new java.util.ArrayList<>();
         public BigDecimal totalAmount = BigDecimal.ZERO;
+        public int totalQuantity = 0;
     }
 
     private SessionCart getSessionCart(HttpSession session) {
@@ -80,6 +83,7 @@ public class CartController {
             item.subtotal = effectivePrice.multiply(BigDecimal.valueOf(item.quantity));
             view.items.add(item);
             view.totalAmount = view.totalAmount.add(item.subtotal);
+            view.totalQuantity += item.quantity;
         }
         return view;
     }
@@ -92,16 +96,68 @@ public class CartController {
         User user = getCurrentUser();
         if (user != null) {
             Cart cart = cartService.getActiveCart(user);
+
+            // Tính lại tạm tính theo quota khuyến mãi thay vì dùng unitPrice * quantity
+            java.math.BigDecimal subtotal = java.math.BigDecimal.ZERO;
+            if (cart.getItems() != null) {
+                for (CartItem item : cart.getItems()) {
+                    Product p = item.getProduct();
+                    if (p == null || p.getPrice() == null) continue;
+                    int quantity = item.getQuantity() != null ? item.getQuantity() : 0;
+                    int discountPercent = p.getDiscountPercent() != null ? p.getDiscountPercent() : 0;
+                    java.math.BigDecimal basePrice = java.math.BigDecimal.valueOf(p.getPrice());
+
+                    int promoRemain = p.getPromoRemaining() != null ? p.getPromoRemaining() : 0;
+                    int discountedQty = (discountPercent > 0 && promoRemain > 0)
+                            ? Math.min(quantity, promoRemain)
+                            : 0;
+                    int normalQty = quantity - discountedQty;
+
+                    java.math.BigDecimal discountedPrice = basePrice
+                            .multiply(java.math.BigDecimal.valueOf(100 - discountPercent))
+                            .divide(java.math.BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+
+                    java.math.BigDecimal lineTotal = discountedPrice.multiply(java.math.BigDecimal.valueOf(discountedQty))
+                            .add(basePrice.multiply(java.math.BigDecimal.valueOf(normalQty)));
+                    subtotal = subtotal.add(lineTotal);
+                }
+            }
+            cart.setTotalAmount(subtotal);
             model.addAttribute("cart", cart);
             String addr = user.getDefaultAddress();
             model.addAttribute("userDefaultAddress", addr != null && !addr.trim().isEmpty() ? addr : null);
             model.addAttribute("userRecipientName", user.getFullName());
             model.addAttribute("userRecipientPhone", user.getPhoneNumber());
             model.addAttribute("userRecipientGender", user.getGender() != null ? user.getGender() : "");
+
+            int totalQty = cart.getItems() == null ? 0
+                    : cart.getItems().stream().mapToInt(i -> i.getQuantity()).sum();
+            model.addAttribute("cartTotalQuantity", totalQty);
+
+            int fee = OrderService.computeShippingFee(cart);
+            model.addAttribute("shippingFeeVnd", fee);
+
+            BigDecimal subtotalForPoints = cart.getTotalAmount() != null ? cart.getTotalAmount() : BigDecimal.ZERO;
+            int vipPoints = subtotalForPoints
+                    .divide(new BigDecimal("10000"), 0, RoundingMode.DOWN)
+                    .intValue();
+            model.addAttribute("vipPoints", vipPoints);
+
             model.addAttribute("userLoggedIn", true);
         } else {
             SessionCart sc = getSessionCart(session);
-            model.addAttribute("cart", buildCartView(sc));
+            CartView cartView = buildCartView(sc);
+            model.addAttribute("cart", cartView);
+            model.addAttribute("cartTotalQuantity", cartView.totalQuantity);
+
+            int fee = (cartView.totalAmount.compareTo(OrderService.FREE_SHIPPING_MIN_SUBTOTAL) >= 0
+                    && cartView.totalQuantity >= OrderService.FREE_SHIPPING_MIN_TOTAL_QUANTITY)
+                    ? 0 : OrderService.SHIPPING_FEE_VND;
+            model.addAttribute("shippingFeeVnd", fee);
+            int vipPoints = cartView.totalAmount
+                    .divide(new BigDecimal("10000"), 0, RoundingMode.DOWN)
+                    .intValue();
+            model.addAttribute("vipPoints", vipPoints);
             model.addAttribute("userDefaultAddress", (String) null);
             model.addAttribute("userRecipientName", null);
             model.addAttribute("userRecipientPhone", null);

@@ -90,6 +90,13 @@
                     <span th:if="${item.product.price != null && item.product.discountPercent != null && item.product.discountPercent > 0}" class="tgdd-cart__item-price-old" th:text="${#numbers.formatInteger(item.product.price != null ? T(java.lang.Math).round(item.product.price) : 0, 3, 'POINT') + '₫'}">0₫</span>
                   </div>
                 </div>
+                <p
+                  class="tgdd-cart__item-warning"
+                  th:if="${item.product.promoRemaining != null && item.product.promoRemaining >= 0 && item.quantity > item.product.promoRemaining}"
+                >
+                  Chỉ <strong th:text="${item.product.promoRemaining}">0</strong> suất được áp dụng giá khuyến mãi,
+                  các suất còn lại sẽ tính theo giá gốc.
+                </p>
                 <p class="tgdd-cart__item-mid">Nhập mã VNPAY0126 giảm tối đa 100,000đ (áp dụng tùy giá trị đơn hàng) khi thanh toán qua VNPAY-QR (<a href="#" class="tgdd-cart__item-promo-link">Xem chi tiết tại đây</a>)</p>
                 <div class="tgdd-cart__item-actions">
                   <form th:action="@{/cart/remove/{id}(id=${item.id != null ? item.id : item.product.id})}" method="post" class="tgdd-cart__item-remove-form" sec:authorize="isAuthenticated()">
@@ -114,11 +121,13 @@
               </div>
             </div>
           </div>
-        <!-- Tạm tính -->
+        <!-- Tạm tính + dữ liệu phí ship (tổng tiền VND & tổng SL cho JS) -->
         <div class="tgdd-cart__subtotal">
-          <span>Tạm tính (<span id="cart-subtotal-count" th:text="${cart.items.size()}">0</span> sản phẩm):</span>
+          <span>Tạm tính (<span id="cart-subtotal-count" th:text="${cart.items.size()}">0</span> sản phẩm, <span id="cart-total-qty" th:text="${cartTotalQuantity != null ? cartTotalQuantity : 0}">0</span> SP):</span>
           <strong id="cart-subtotal-total" th:text="${#numbers.formatInteger(cart.totalAmount != null ? cart.totalAmount.setScale(0, T(java.math.RoundingMode).HALF_UP).intValue() : 0, 3, 'POINT') + '₫'}">0₫</strong>
         </div>
+        <input type="hidden" id="cart-subtotal-amount-vnd" th:value="${cart.totalAmount != null ? cart.totalAmount.setScale(0, T(java.math.RoundingMode).HALF_UP).intValue() : 0}" />
+        <input type="hidden" id="cart-total-quantity" th:value="${cartTotalQuantity != null ? cartTotalQuantity : 0}" />
         <!-- Sau khi xác nhận: thông tin nhận hàng (ẩn ban đầu) -->
         <div class="tgdd-cart__shipping-info" id="cart-shipping-info" hidden>
           <div class="tgdd-cart__divider"></div>
@@ -138,19 +147,19 @@
             </div>
           </div>
 
-          <!-- Khung #F6F7F9: thời gian, giao siêu nhanh, phí, giao bởi nhân viên + logo -->
+          <!-- Phí giao hàng: miễn phí nếu tạm tính >= 1.000.000₫ và tổng SL >= 2; không thì 30.000₫ -->
           <div class="tgdd-cart__delivery-box">
             <div class="tgdd-cart__delivery-box-row tgdd-cart__delivery-box-row--top">
               <span class="tgdd-cart__delivery-time">Giao 12h00 - 14h00, hôm nay</span>
               <button type="button" class="tgdd-cart__delivery-time-btn">Đổi thời gian</button>
             </div>
-            <label class="tgdd-cart__shipping-checkbox">
-              <input type="checkbox" id="cart-fast-shipping" />
-              <span>Giao siêu nhanh</span>
-            </label>
+            <p class="tgdd-cart__shipping-rule small text-muted mb-2">
+              Miễn phí giao hàng khi tổng đơn &gt;= 1.000.000₫ và tổng số lượng sản phẩm &gt;= 2. Còn lại: 30.000₫.
+            </p>
             <div class="tgdd-cart__delivery-box-row tgdd-cart__delivery-box-row--mid">
               <span>Phí giao hàng</span>
-              <span id="cart-shipping-fee-text" class="tgdd-cart__fee-value">Miễn phí</span>
+              <span id="cart-shipping-fee-text" class="tgdd-cart__fee-value"
+                    th:text="${shippingFeeVnd != null && shippingFeeVnd == 0} ? 'Miễn phí' : '30.000₫'">30.000₫</span>
             </div>
             <div class="tgdd-cart__delivery-box-row tgdd-cart__delivery-box-row--bottom">
               <span>Giao bởi nhân viên</span>
@@ -186,15 +195,22 @@
             <span>Dùng điểm Quà Tặng VIP</span>
             <button type="button" class="tgdd-cart__vip-toggle" id="cart-vip-toggle" aria-pressed="false" role="switch" title="Bật/tắt dùng điểm VIP"><span class="tgdd-cart__vip-toggle__knob"></span></button>
           </div>
-          <!-- Tổng tiền -->
+          <!-- Tổng tiền = tạm tính + phí ship -->
           <div class="tgdd-cart__order-total-row">
             <span>Tổng tiền</span>
-            <strong id="cart-order-total" th:text="${#numbers.formatInteger(cart.totalAmount != null ? cart.totalAmount.setScale(0, T(java.math.RoundingMode).HALF_UP).intValue() : 0, 3, 'POINT') + '₫'}">0₫</strong>
+            <strong id="cart-order-total"
+                    th:with="sub=${cart.totalAmount != null ? cart.totalAmount.setScale(0, T(java.math.RoundingMode).HALF_UP).intValue() : 0}, fee=${shippingFeeVnd != null ? shippingFeeVnd : 30000}"
+                    th:text="${#numbers.formatInteger(sub + fee, 3, 'POINT') + '₫'}">0₫</strong>
           </div>
           <!-- Điểm tích lũy Quà Tặng VIP -->
           <div class="tgdd-cart__vip-points-row">
             <span>Điểm tích lũy Quà Tặng VIP</span>
-            <span id="cart-vip-points" class="tgdd-cart__vip-points-value">1.836 điểm</span>
+            <span
+              id="cart-vip-points"
+              class="tgdd-cart__vip-points-value"
+              th:text="${vipPoints != null ? #numbers.formatInteger(vipPoints, 3, 'POINT') + ' điểm' : '0 điểm'}"
+              >0 điểm</span
+            >
           </div>
           <!-- Dải ngăn cách -->
           <div class="tgdd-cart__divider"></div>
@@ -463,6 +479,14 @@
                   if (shipList) { var card = shipList.querySelector('.tgdd-cart__shipping-card[data-item-id="' + itemId + '"]'); if (card) card.remove(); }
                   if (subtotalCount) subtotalCount.textContent = data.items ? data.items.length : 0;
                   if (subtotalTotal) subtotalTotal.textContent = fmtVnd(data.totalAmount != null ? data.totalAmount : 0);
+                  var subVnd = document.getElementById("cart-subtotal-amount-vnd");
+                  if (subVnd && data.totalAmount != null) subVnd.value = Math.round(data.totalAmount);
+                  var qtyHidden = document.getElementById("cart-total-quantity");
+                  var qtySpan = document.getElementById("cart-total-qty");
+                  if (data.totalQuantity != null) {
+                    if (qtyHidden) qtyHidden.value = data.totalQuantity;
+                    if (qtySpan) qtySpan.textContent = data.totalQuantity;
+                  }
                   updateCartOrderTotal();
                   if (data.items && data.items.length === 0) window.location.href = "/cart";
                 })
@@ -496,6 +520,14 @@
                 if (shipList) { var card = shipList.querySelector('.tgdd-cart__shipping-card[data-item-id="' + itemId + '"]'); var qtySpan = card && card.querySelector('.tgdd-cart__shipping-card-qty'); if (qtySpan) qtySpan.textContent = qty; }
                 if (subtotalCount) subtotalCount.textContent = data.items ? data.items.length : 0;
                 if (subtotalTotal) subtotalTotal.textContent = fmtVnd(data.totalAmount != null ? data.totalAmount : 0);
+                var subVnd2 = document.getElementById("cart-subtotal-amount-vnd");
+                if (subVnd2 && data.totalAmount != null) subVnd2.value = Math.round(data.totalAmount);
+                var qtyHidden2 = document.getElementById("cart-total-quantity");
+                var qtySpan2 = document.getElementById("cart-total-qty");
+                if (data.totalQuantity != null) {
+                  if (qtyHidden2) qtyHidden2.value = data.totalQuantity;
+                  if (qtySpan2) qtySpan2.textContent = data.totalQuantity;
+                }
                 updateCartOrderTotal();
               })
               .catch(function () { window.location.reload(); })
@@ -516,19 +548,31 @@
           var s = el.textContent.replace(/\./g, "").replace(/₫/g, "").trim();
           return parseInt(s, 10) || 0;
         }
+        function updateVipPoints() {
+          var subInput = document.getElementById("cart-subtotal-amount-vnd");
+          var el = document.getElementById("cart-vip-points");
+          if (!subInput || !el) return;
+          var base = parseInt(subInput.value || "0", 10) || 0;
+          var pts = Math.floor(base / 10000);
+          var text = (pts > 0 ? pts.toLocaleString("vi-VN") : "0") + " điểm";
+          el.textContent = text;
+        }
         function updateCartOrderTotal() {
           var subtotalEl = document.getElementById("cart-subtotal-total");
           var totalEl = document.getElementById("cart-order-total");
           var feeEl = document.getElementById("cart-shipping-fee-text");
-          var fastCheck = document.getElementById("cart-fast-shipping");
           if (!totalEl || !subtotalEl) return;
           var base = parseVnd(subtotalEl);
-          var fee = (fastCheck && fastCheck.checked) ? 50000 : 0;
-          if (feeEl) feeEl.textContent = fee > 0 ? "50.000₫" : "Miễn phí";
+          var subInput = document.getElementById("cart-subtotal-amount-vnd");
+          var qtyInput = document.getElementById("cart-total-quantity");
+          if (subInput && subInput.value) base = parseInt(subInput.value, 10) || base;
+          var totalQty = qtyInput ? (parseInt(qtyInput.value, 10) || 0) : 0;
+          // Miễn ship: tổng >= 1.000.000 và tổng SL >= 2
+          var fee = (base >= 1000000 && totalQty >= 2) ? 0 : 30000;
+          if (feeEl) feeEl.textContent = fee > 0 ? "30.000₫" : "Miễn phí";
           totalEl.textContent = fmtVnd(base + fee);
+          updateVipPoints();
         }
-        var fastShipping = document.getElementById("cart-fast-shipping");
-        if (fastShipping) fastShipping.addEventListener("change", updateCartOrderTotal);
         var agreeCheck = document.getElementById("cart-agree-policy");
         var placeBtn = document.getElementById("cart-place-order-btn");
         if (agreeCheck && placeBtn) {
@@ -582,8 +626,11 @@
               } else { noteParts.push(c.value); }
             });
             var note = noteParts.length > 0 ? noteParts.join("; ") : "";
-            var fastCheck = document.getElementById("cart-fast-shipping");
-            var shippingFee = (fastCheck && fastCheck.checked) ? 50000 : 0;
+            var subInput = document.getElementById("cart-subtotal-amount-vnd");
+            var qtyInput = document.getElementById("cart-total-quantity");
+            var base = subInput ? (parseInt(subInput.value, 10) || 0) : 0;
+            var totalQty = qtyInput ? (parseInt(qtyInput.value, 10) || 0) : 0;
+            var shippingFee = (base >= 1000000 && totalQty >= 2) ? 0 : 30000;
             if (!addr || !phone) { alert("Vui lòng xác nhận thông tin người nhận và địa chỉ giao hàng."); return; }
             var csrfMeta = document.querySelector("meta[name=_csrf]");
             var csrfHeaderMeta = document.querySelector("meta[name=_csrf_header]");
