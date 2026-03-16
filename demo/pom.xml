@@ -5,10 +5,10 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.hutech</groupId>
-    <artifactId>demo</artifactId>
+    <groupId>com.vinh</groupId>
+    <artifactId>thegioididong</artifactId>
     <version>1.0.0</version>
-    <name>Demo E-Commerce Management System</name>
+    <name>thegioididong</name>
     <description>Spring Boot E-Commerce Application</description>
 
     <parent>
