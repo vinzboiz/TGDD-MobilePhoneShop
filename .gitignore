@@ -1,0 +1,48 @@
+# Maven / Java
+target/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+
+# Per‑user Maven repo (optional)
+.m2/
+
+# IDE / Editor
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+*.swp
+*.swo
+*~
+
+# Spring Boot / logs
+*.log
+
+# Local configuration (keep only base application.properties in Git)
+application-*.properties
+
+# Build artifacts
+*.class
+*.ctxt
+.mtj.tmp/
+
+# Node (if used for tooling)
+node_modules/
+npm-debug.log*
+pnpm-lock.yaml
+package-lock.json
+
+# Python (if used for scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS / misc
+.DS_Store
+Thumbs.db
+nul
