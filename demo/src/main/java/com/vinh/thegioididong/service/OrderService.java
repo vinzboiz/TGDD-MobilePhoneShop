@@ -33,6 +33,7 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final CartService cartService;
     private final com.hutech.demo.repository.UserRepository userRepository;
+    private final VoucherService voucherService;
 
     /**
      * Tính phí giao hàng dựa trên giỏ hàng:
@@ -60,7 +61,8 @@ public class OrderService {
             String phoneNumber,
             String paymentMethod,
             String note,
-            int ignoredClientShippingFee
+            int ignoredClientShippingFee,
+            String voucherCode
     ) {
         Cart cart = cartService.getActiveCart(user);
         if (cart.getItems() == null || cart.getItems().isEmpty()) {
@@ -143,8 +145,13 @@ public class OrderService {
         } else {
             shippingFee = SHIPPING_FEE_VND;
         }
-        BigDecimal orderTotal = subtotal.add(BigDecimal.valueOf(shippingFee));
-        order.setTotalAmount(orderTotal.doubleValue());
+        int subtotalVnd = subtotal.setScale(0, RoundingMode.DOWN).intValue();
+        int voucherDiscount = voucherService.applyVoucher(user, voucherCode, subtotalVnd);
+        order.setVoucherCode(voucherDiscount > 0 ? voucherCode : null);
+        order.setVoucherDiscount(voucherDiscount);
+
+        BigDecimal orderTotal = subtotal.add(BigDecimal.valueOf(shippingFee)).subtract(BigDecimal.valueOf(voucherDiscount));
+        order.setTotalAmount(orderTotal.max(BigDecimal.ZERO).doubleValue());
 
         // Điểm thưởng: mỗi 10.000₫ tiền hàng = 1 điểm, không tính phí ship
         int rewardPoints = subtotal
@@ -163,6 +170,10 @@ public class OrderService {
         }
 
         Order savedOrder = orderRepository.save(order);
+
+        if (voucherDiscount > 0 && voucherCode != null && !voucherCode.isBlank()) {
+            voucherService.markVoucherUsed(voucherCode, user, savedOrder.getId());
+        }
 
         // Mark cart as checked out and clear items
         cart.setStatus(CartStatus.CHECKED_OUT);

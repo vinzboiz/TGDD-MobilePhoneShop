@@ -61,7 +61,11 @@
             <h2 class="admin-quick__section-title mb-0">
               Danh sách sản phẩm
             </h2>
-            <a href="/products/add" class="admin-quick__btn admin-quick__btn--primary">
+            <a
+              href="/products/add"
+              class="admin-quick__btn admin-quick__btn--primary"
+              sec:authorize="hasRole('ADMIN')"
+            >
               ➕ Thêm sản phẩm mới
             </a>
           </div>
@@ -208,12 +212,14 @@
                 <a
                   th:href="@{/products/edit/{id}(id=${product.id})}"
                   class="btn btn-primary btn-sm"
+                  sec:authorize="hasRole('ADMIN')"
                   >✏️ Edit</a
                 >
                 <form
                   th:action="@{/products/delete/{id}(id=${product.id})}"
                   method="post"
                   onsubmit="return confirm('Delete this product?');"
+                  sec:authorize="hasRole('ADMIN')"
                 >
                   <button type="submit" class="btn btn-danger btn-sm w-100">
                     🗑️ Delete

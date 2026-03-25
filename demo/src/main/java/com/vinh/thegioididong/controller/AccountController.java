@@ -2,8 +2,10 @@ package com.hutech.demo.controller;
 
 import com.hutech.demo.model.Order;
 import com.hutech.demo.model.User;
+import com.hutech.demo.model.UserVoucher;
 import com.hutech.demo.service.OrderService;
 import com.hutech.demo.service.UserService;
+import com.hutech.demo.service.VoucherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,14 +26,17 @@ public class AccountController {
 
     private final UserService userService;
     private final OrderService orderService;
+    private final VoucherService voucherService;
 
     @GetMapping
     public String profile(Model model) {
         User user = getCurrentUser();
         List<Order> orders = orderService.getOrdersForUser(user);
+        List<UserVoucher> vouchers = voucherService.getAvailableVouchers(user);
 
         model.addAttribute("user", user);
         model.addAttribute("orders", orders);
+        model.addAttribute("vouchers", vouchers);
         return "account/profile";
     }
 

@@ -4,10 +4,12 @@ import com.hutech.demo.model.Cart;
 import com.hutech.demo.model.CartItem;
 import com.hutech.demo.model.User;
 import com.hutech.demo.model.Product;
+import com.hutech.demo.model.UserRole;
 import com.hutech.demo.service.CartService;
 import com.hutech.demo.service.ProductService;
 import com.hutech.demo.service.UserService;
 import com.hutech.demo.service.OrderService;
+import com.hutech.demo.service.VoucherService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -33,6 +35,9 @@ public class CartController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private VoucherService voucherService;
 
     // session key
     private static final String SESSION_CART_KEY = "SESSION_CART";
@@ -143,6 +148,11 @@ public class CartController {
                     .intValue();
             model.addAttribute("vipPoints", vipPoints);
 
+            if (user.getRole() == UserRole.CUSTOMER) {
+                model.addAttribute("userVouchers", voucherService.getAvailableVouchers(user));
+            } else {
+                model.addAttribute("userVouchers", java.util.Collections.emptyList());
+            }
             model.addAttribute("userLoggedIn", true);
         } else {
             SessionCart sc = getSessionCart(session);
@@ -162,6 +172,7 @@ public class CartController {
             model.addAttribute("userRecipientName", null);
             model.addAttribute("userRecipientPhone", null);
             model.addAttribute("userRecipientGender", null);
+            model.addAttribute("userVouchers", java.util.Collections.emptyList());
             model.addAttribute("userLoggedIn", false);
         }
         return "cart/cart";

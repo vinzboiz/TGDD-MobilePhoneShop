@@ -30,7 +30,8 @@ public class OrderRestController {
             String phoneNumber,
             String paymentMethod,
             String note,
-            Integer shippingFee
+            Integer shippingFee,
+            String voucherCode
     ) {}
 
     public record OrderSummaryDto(
@@ -68,7 +69,8 @@ public class OrderRestController {
                 request.phoneNumber(),
                 request.paymentMethod(),
                 request.note(),
-                request.shippingFee() != null ? request.shippingFee() : 0
+                request.shippingFee() != null ? request.shippingFee() : 0,
+                request.voucherCode()
         );
         return ResponseEntity.ok(toDetailDto(order));
     }

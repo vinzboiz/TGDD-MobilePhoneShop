@@ -181,13 +181,21 @@
           </div>
           <!-- Dải ngăn cách -->
           <div class="tgdd-cart__divider"></div>
-          <!-- Chọn hoặc nhập mã giảm -->
-          <div class="tgdd-cart__voucher-row">
+          <!-- Chọn thẻ khuyến mãi (đổi từ điểm tích lũy) -->
+          <div class="tgdd-cart__voucher-row" sec:authorize="isAuthenticated()">
             <span class="tgdd-cart__voucher-icon" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v2H2V6c0-1.1.9-2 2-2z"/><path d="M2 10h20v8c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2v-8z"/><circle cx="8" cy="15" r="1.5"/><path d="M14 11l4 4"/><path d="M18 11l-4 4"/></svg>
             </span>
-            <a href="#" class="tgdd-cart__voucher-link">Chọn hoặc nhập mã giảm</a>
-            <span class="tgdd-cart__voucher-arrow">›</span>
+            <label class="tgdd-cart__voucher-label me-2">Thẻ khuyến mãi:</label>
+            <select id="cart-voucher-select" class="form-select form-select-sm d-inline-block w-auto">
+              <option value="">-- Không dùng --</option>
+              <option th:each="v : ${userVouchers}" th:value="${v.code}" th:attr="data-value=${v.voucherValue}" th:text="${v.code + ' (-' + #numbers.formatInteger(v.voucherValue, 3, 'POINT') + '₫)'}">VOUCHER-XXX (-10.000₫)</option>
+            </select>
+            <a th:href="@{/account/redeem}" class="tgdd-cart__voucher-link ms-2 small" sec:authorize="hasRole('CUSTOMER')">Đổi điểm tích lũy</a>
+          </div>
+          <div class="tgdd-cart__voucher-row" sec:authorize="!isAuthenticated()">
+            <span class="tgdd-cart__voucher-icon"></span>
+            <a th:href="@{/auth/login}" class="tgdd-cart__voucher-link">Đăng nhập để dùng thẻ khuyến mãi</a>
           </div>
           <!-- Dùng điểm Quà Tặng VIP: icon + toggle tròn -->
           <div class="tgdd-cart__vip-row">
@@ -195,13 +203,19 @@
             <span>Dùng điểm Quà Tặng VIP</span>
             <button type="button" class="tgdd-cart__vip-toggle" id="cart-vip-toggle" aria-pressed="false" role="switch" title="Bật/tắt dùng điểm VIP"><span class="tgdd-cart__vip-toggle__knob"></span></button>
           </div>
-          <!-- Tổng tiền = tạm tính + phí ship -->
+          <!-- Giảm giá thẻ (ẩn khi không chọn) -->
+          <div class="tgdd-cart__order-total-row" id="cart-voucher-discount-row" hidden>
+            <span>Giảm giá thẻ</span>
+            <strong id="cart-voucher-discount-value" class="text-success">-0₫</strong>
+          </div>
+          <!-- Tổng tiền = tạm tính + phí ship - voucher -->
           <div class="tgdd-cart__order-total-row">
             <span>Tổng tiền</span>
             <strong id="cart-order-total"
                     th:with="sub=${cart.totalAmount != null ? cart.totalAmount.setScale(0, T(java.math.RoundingMode).HALF_UP).intValue() : 0}, fee=${shippingFeeVnd != null ? shippingFeeVnd : 30000}"
                     th:text="${#numbers.formatInteger(sub + fee, 3, 'POINT') + '₫'}">0₫</strong>
           </div>
+          <input type="hidden" id="cart-selected-voucher-code" value="" />
           <!-- Điểm tích lũy Quà Tặng VIP -->
           <div class="tgdd-cart__vip-points-row">
             <span>Điểm tích lũy Quà Tặng VIP</span>
@@ -561,18 +575,43 @@
           var subtotalEl = document.getElementById("cart-subtotal-total");
           var totalEl = document.getElementById("cart-order-total");
           var feeEl = document.getElementById("cart-shipping-fee-text");
+          var voucherRow = document.getElementById("cart-voucher-discount-row");
+          var voucherValEl = document.getElementById("cart-voucher-discount-value");
+          var voucherSelect = document.getElementById("cart-voucher-select");
+          var voucherCodeInput = document.getElementById("cart-selected-voucher-code");
           if (!totalEl || !subtotalEl) return;
           var base = parseVnd(subtotalEl);
           var subInput = document.getElementById("cart-subtotal-amount-vnd");
           var qtyInput = document.getElementById("cart-total-quantity");
           if (subInput && subInput.value) base = parseInt(subInput.value, 10) || base;
           var totalQty = qtyInput ? (parseInt(qtyInput.value, 10) || 0) : 0;
-          // Miễn ship: tổng >= 1.000.000 và tổng SL >= 2
           var fee = (base >= 1000000 && totalQty >= 2) ? 0 : 30000;
+          var voucherDiscount = 0;
+          var selectedCode = "";
+          if (voucherSelect && voucherSelect.value) {
+            var opt = voucherSelect.options[voucherSelect.selectedIndex];
+            if (opt && opt.getAttribute("data-value")) {
+              var voucherValue = parseInt(opt.getAttribute("data-value"), 10) || 0;
+              voucherDiscount = Math.min(voucherValue, base);
+              selectedCode = voucherSelect.value;
+            }
+          }
           if (feeEl) feeEl.textContent = fee > 0 ? "30.000₫" : "Miễn phí";
-          totalEl.textContent = fmtVnd(base + fee);
+          if (voucherRow && voucherValEl) {
+            if (voucherDiscount > 0) {
+              voucherRow.hidden = false;
+              voucherValEl.textContent = "-" + fmtVnd(voucherDiscount);
+            } else {
+              voucherRow.hidden = true;
+            }
+          }
+          if (voucherCodeInput) voucherCodeInput.value = selectedCode;
+          totalEl.textContent = fmtVnd(Math.max(0, base + fee - voucherDiscount));
           updateVipPoints();
         }
+        var voucherSelect = document.getElementById("cart-voucher-select");
+        if (voucherSelect) voucherSelect.addEventListener("change", updateCartOrderTotal);
+
         var agreeCheck = document.getElementById("cart-agree-policy");
         var placeBtn = document.getElementById("cart-place-order-btn");
         if (agreeCheck && placeBtn) {
@@ -631,6 +670,9 @@
             var base = subInput ? (parseInt(subInput.value, 10) || 0) : 0;
             var totalQty = qtyInput ? (parseInt(qtyInput.value, 10) || 0) : 0;
             var shippingFee = (base >= 1000000 && totalQty >= 2) ? 0 : 30000;
+            var voucherCode = "";
+            var voucherInput = document.getElementById("cart-selected-voucher-code");
+            if (voucherInput && voucherInput.value) voucherCode = voucherInput.value.trim();
             if (!addr || !phone) { alert("Vui lòng xác nhận thông tin người nhận và địa chỉ giao hàng."); return; }
             var csrfMeta = document.querySelector("meta[name=_csrf]");
             var csrfHeaderMeta = document.querySelector("meta[name=_csrf_header]");
@@ -641,7 +683,7 @@
               method: "POST",
               credentials: "include",
               headers: { "Content-Type": "application/json", [csrfHeader]: csrfToken },
-              body: JSON.stringify({ shippingAddress: addr, phoneNumber: phone, paymentMethod: payment, note: note || null, shippingFee: shippingFee })
+              body: JSON.stringify({ shippingAddress: addr, phoneNumber: phone, paymentMethod: payment, note: note || null, shippingFee: shippingFee, voucherCode: voucherCode || null })
             })
               .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
               .then(function (data) { window.location.href = "/orders/" + data.id; })

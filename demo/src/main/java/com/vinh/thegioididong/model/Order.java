@@ -57,6 +57,14 @@ public class Order {
     @Column(name = "reward_points")
     private Integer rewardPoints;
 
+    /** Mã thẻ khuyến mãi đã áp dụng (đổi từ điểm tích lũy). */
+    @Column(name = "voucher_code", length = 50)
+    private String voucherCode;
+
+    /** Số tiền giảm từ thẻ khuyến mãi (VNĐ). */
+    @Column(name = "voucher_discount")
+    private Integer voucherDiscount = 0;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderDetail> orderDetails;
 

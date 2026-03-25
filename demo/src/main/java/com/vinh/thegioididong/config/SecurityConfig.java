@@ -41,21 +41,28 @@ public class SecurityConfig {
                 .requestMatchers(
                         "/auth/**",
                         "/",
+                        "/404",
+                        "/error",
                         "/css/**",
                         "/js/**",
                         "/images/**",
                         "/categories/image/**"
                 ).permitAll()
-                // Admin: quản lý (khai báo trước để match trước)
+                // Admin: full management (declare first to match before permitAll)
                 .requestMatchers(
                         "/admin/**",
-                        "/categories/**",
+                        "/categories/delete/**",
+                        "/products/delete/**"
+                ).hasRole("ADMIN")
+                // Manager: thêm/sửa danh mục và sản phẩm (không xóa)
+                .requestMatchers("/categories/**").hasAnyRole("ADMIN", "MANAGER")
+                // Manager: same as customer, but can manage products (view/add/edit) like admin (no delete)
+                .requestMatchers(
                         "/products/add",
                         "/products/add/**",
                         "/products/edit/**",
-                        "/products/update/**",
-                        "/products/delete/**"
-                ).hasRole("ADMIN")
+                        "/products/update/**"
+                ).hasAnyRole("ADMIN", "MANAGER")
                 // Storefront: xem danh sách, chi tiết, ảnh — cho tất cả
                 .requestMatchers(
                         "/products",
@@ -103,6 +110,12 @@ public class SecurityConfig {
                         "/orders/**",
                         "/account/update"
                 )
+            )
+            .exceptionHandling(ex -> ex
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    // Return 404 page instead of 403 for unauthorized access attempts
+                    response.sendRedirect("/404");
+                })
             );
 
         return http.build();

@@ -69,6 +69,13 @@ public class User {
     @Column(name = "total_reward_points")
     private Integer totalRewardPoints = 0;
 
+    /**
+     * Base32 secret cho TOTP (Google/Microsoft Authenticator).
+     * Null = chưa thiết lập Authenticator.
+     */
+    @Column(name = "totp_secret", length = 32)
+    private String totpSecret;
+
     // Relationships
     // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     // private List<Cart> carts;

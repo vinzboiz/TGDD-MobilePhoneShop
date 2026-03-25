@@ -48,6 +48,10 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+    public User save(User user) {
+        return userRepository.save(user);
+    }
+
     public User updateProfile(User user, String fullName, String phoneNumber, String defaultAddress, String gender) {
         user.setFullName(fullName);
         user.setPhoneNumber(phoneNumber);

@@ -59,7 +59,11 @@
 
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h2 class="admin-quick__section-title mb-0">Danh mục cha</h2>
-            <a href="/categories/add" class="admin-quick__btn admin-quick__btn--primary">
+            <a
+              href="/categories/add"
+              class="admin-quick__btn admin-quick__btn--primary"
+              sec:authorize="hasAnyRole('ADMIN','MANAGER')"
+            >
               ➕ Thêm danh mục con
             </a>
           </div>
@@ -89,6 +93,7 @@
                 <a
                   th:href="@{/categories/parent/edit/{id}(id=${cat.id})}"
                   class="btn btn-primary btn-sm btn-action"
+                  sec:authorize="hasAnyRole('ADMIN','MANAGER')"
                   >✏️ Sửa (đặc tính)</a
                 >
                 <span class="text-muted small">(không xóa cha)</span>
@@ -136,6 +141,7 @@
                 <a
                   th:href="@{/categories/edit/{id}(id=${category.id})}"
                   class="btn btn-primary btn-sm btn-action"
+                  sec:authorize="hasAnyRole('ADMIN','MANAGER')"
                   >✏️ Sửa</a
                 >
                 <form
@@ -143,6 +149,7 @@
                   method="post"
                   style="display: inline"
                   onsubmit="return confirm('Bạn chắc chắn muốn xóa?');"
+                  sec:authorize="hasRole('ADMIN')"
                 >
                   <button type="submit" class="btn btn-danger btn-sm btn-action">🗑️ Xóa</button>
                 </form>

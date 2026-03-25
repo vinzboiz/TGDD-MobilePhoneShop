@@ -36,6 +36,7 @@ public class CheckoutController {
         private String paymentMethod;
         private String note;
         private Integer shippingFee;
+        private String voucherCode;
     }
 
     @GetMapping("/checkout")
@@ -65,7 +66,8 @@ public class CheckoutController {
                     form.getPhoneNumber(),
                     form.getPaymentMethod(),
                     form.getNote(),
-                    form.getShippingFee() != null ? form.getShippingFee() : 0
+                    form.getShippingFee() != null ? form.getShippingFee() : 0,
+                    form.getVoucherCode()
             );
             redirectAttributes.addFlashAttribute("successMessage", "Order placed successfully!");
             return "redirect:/orders/" + order.getId();

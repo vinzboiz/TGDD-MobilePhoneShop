@@ -112,7 +112,11 @@
 
           <div class="d-flex justify-content-end gap-2 mt-2">
             <a href="/categories" class="admin-quick__btn admin-quick__btn--outline">Hủy</a>
-            <button type="submit" class="admin-quick__btn admin-quick__btn--primary">
+            <button
+              type="submit"
+              class="admin-quick__btn admin-quick__btn--primary"
+              sec:authorize="hasAnyRole('ADMIN','MANAGER')"
+            >
               ✅ Tạo danh mục
             </button>
           </div>

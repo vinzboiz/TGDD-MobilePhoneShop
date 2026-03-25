@@ -1,6 +1,7 @@
 package com.hutech.demo.service;
 
 import com.hutech.demo.model.Product;
+import com.hutech.demo.repository.CartItemRepository;
 import com.hutech.demo.repository.ProductRepository;
 import com.hutech.demo.repository.SecondaryImageRepository;
 import com.hutech.demo.model.SecondaryImage;
@@ -27,6 +28,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final SecondaryImageRepository secondaryImageRepository;
+    private final CartItemRepository cartItemRepository;
 
     /**
      * Get all products
@@ -105,9 +107,11 @@ public class ProductService {
     }
 
     /**
-     * Delete product by id
+     * Delete product by id.
+     * Trước khi xóa, xóa tất cả cart_items tham chiếu đến sản phẩm này để tránh FK constraint.
      */
     public void deleteById(Long id) {
+        cartItemRepository.deleteByProductId(id);
         productRepository.deleteById(id);
     }
 
